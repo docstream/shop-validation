@@ -12,6 +12,8 @@ assert = require 'assert'
 # SCHEMA
 subscriberType = Joi.string().required().only ['account','trial','student']
 
+snapshotType = Joi.object()
+
 # Event -> boolean
 isSubscriberTypeEvent = (ev) ->
   !(Joi.validate ev.type, subscriberType).error

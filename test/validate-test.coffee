@@ -108,6 +108,22 @@ describe 'state validation', ->
       d[0].error.message.match /schema.*missing/
       done()
 
+  it 'will not handle invalid events, props missing', (done) ->
+
+    data = [
+      { type: 'account' } # .name missing
+    ]
+
+    should.throws (->
+      validate snapshot, data),
+    (err) ->
+      d = err.data
+      d[0].error.should.be
+      d[0].error.isJoi.should.be.ok
+      d[0].error.message.should.match /"name" is required/
+      done()
+
+
   it 'has ISSUES on trial AFTER account', (done) ->
 
     data = [
