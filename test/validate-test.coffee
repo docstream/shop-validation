@@ -44,6 +44,20 @@ describe 'state validation', ->
       msg_.should.match /Cannot pop NON-EXISTING/
       done()
 
+  it 'WORKS if pop-mem on Mem set', (done) ->
+
+    data = [
+      fix.acc()
+      fix.incrCap 111
+      fix.pushM 5
+      fix.popM 4 # 1 left
+      fix.popM 1 # 0 left
+    ]
+
+    validate snapshot, data
+    done()
+
+
   it 'WORKS if push-mem after increment', (done) ->
 
     data = [
@@ -87,9 +101,7 @@ describe 'state validation', ->
       validate snapshot, data),
     (err) ->
       d = err.data
-      console.log 'err +++', err, err.data
       err.message.should.match /2 issue\(s\)/
-      
       d[3].error.should.be
       d[4].error.should.be
       done()

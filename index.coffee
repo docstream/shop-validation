@@ -133,6 +133,9 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
       currCap = currentMemberCapacity precedingEvents, snapshot.memberCapacity
       precedingMems = sqashedMembers precedingEvents
       accumulatedMembers = _.union precedingMems, event.members
+
+      # TODO above is not ROCK-SOLID !!! since each PREV could have failed by now
+
       errMsg = "Cannot [#{event.type}] now. OVERFLOW ! capacity = #{currCap}"
       assert currCap >= accumulatedMembers.length, errMsg
 
