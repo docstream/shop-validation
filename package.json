@@ -1,0 +1,21 @@
+{
+  "name": "shop-validation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "preinstall": "coffee index.coffee",
+    "test": "./node_modules/.bin/mocha -R spec --require coffee-script/register \"test/**/*.coffee\""
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "joi": "^13.1.1",
+    "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "coffee-script": "^1.12.7",
+    "mocha": "^5.0.0",
+    "should": "^13.2.1"
+  }
+}
