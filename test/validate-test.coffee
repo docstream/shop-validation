@@ -72,7 +72,9 @@ describe 'state validation', ->
 
     snapshot2 =
      idx: 42
-     subscriberType: 'account'
+     subscriberType: 'account' 
+
+    # 1
 
     validate snapshot2 , data
     done()
