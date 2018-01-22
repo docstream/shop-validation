@@ -44,6 +44,25 @@ describe 'state validation', ->
       msg_.should.match /Cannot pop NON-EXISTING/
       done()
 
+  it 'has ISSUES on pushMem if NO subscriberType', (done) ->
+
+    data = [
+      # neither account|trial|student
+      fix.pushM 1
+    ]
+
+    snapshot2 =
+     idx: 42
+     subscriberType: 'x'
+
+    should.throws (->
+      validate snapshot2 , data),
+    (err) ->
+      d = err.data
+      msg_ = d[0].error.message
+      msg_.should.match /isnt \'account\'/
+      done()
+
   it 'WORKS if pop-mem on Mem set', (done) ->
 
     data = [

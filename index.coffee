@@ -99,10 +99,10 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
   mustBelongToSubscriberType = (subsType) ->
     Joi.attempt subsType, subscriberType
     errMsg = "[.subscriberType] isnt '#{subsType}' !"
-    if snapshot.subscriberType != subsType
+    if precedingEvents.length>0 and snapshot.subscriberType != subsType
       rule = _.some precedingEvents, (pEv) -> pEv.type == subsType
       assert rule, errMsg
-    else
+    else if snapshot.subscriberType != subsType
       assert.fail errMsg
 
    # SENTINEL helper
@@ -132,10 +132,9 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
       # rule 2
       currCap = currentMemberCapacity precedingEvents, snapshot.memberCapacity
       precedingMems = sqashedMembers precedingEvents
+      # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
       accumulatedMembers = _.union precedingMems, event.members
-
-      # TODO above is not ROCK-SOLID !!! since each PREV could have failed by now
-
+      
       errMsg = "Cannot [#{event.type}] now. OVERFLOW ! capacity = #{currCap}"
       assert currCap >= accumulatedMembers.length, errMsg
 
@@ -145,6 +144,7 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
 
       # rule 2
       currMembers = sqashedMembers precedingEvents, snapshot.members
+      # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
       diff = _.difference event.members, currMembers
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
       assert diff.length == 0, errMsg
