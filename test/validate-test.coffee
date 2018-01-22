@@ -51,6 +51,20 @@ describe 'state validation', ->
 
     # thows if invalid data!
     validate snapshot, data
+
+  it 'will not handle crazy events', (done) ->
+
+    data = [
+      { type: 'crazy', just: "a-hack"}
+    ]
+
+
+    should.throws (->
+      validate snapshot, data),
+    (err) ->
+      d = err.data
+      should( d[0].errors ).not.be
+      done()
    
 
 
