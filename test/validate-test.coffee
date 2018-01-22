@@ -10,10 +10,11 @@ describe 'state validation', ->
   snapshot =
      idx: 1000
 
-  it 'has ISSUES on push-mem without CAP', (done) ->
+  it 'has ISSUES on push-mem without CAP set', (done) ->
 
     data = [
-      fix.acc(), fix.pushM(2)
+      fix.acc()
+      fix.pushM(2)
     ]
 
     should.throws ( ->
@@ -21,36 +22,77 @@ describe 'state validation', ->
     (err) ->
       d = err.data
       should( d[0].errors ).not.be
-      d[1].errors.length.should.eql 1
-      d[1].errors[0].message.should.match /OVERFLOW/
+      d[1].error.should.be
+      d[1].error.message.should.match /OVERFLOW/
       done()
 
 
   it 'has ISSUES if pop-mem not-existing', (done) ->
 
     data = [
-      fix.acc(), fix.popM(4)
+      fix.acc()
+      fix.popM(4)
     ]
 
     should.throws (->
       validate snapshot, data),
     (err) ->
       d = err.data
-      should( d[0].errors ).not.be
-      d[1].errors.length.should.eql 1
-      msg_ = d[1].errors[0].message
-      console.log 'd[1].errors[0].message', msg_
+      should( d[0].error ).not.be
+      d[1].error.should.be
+      msg_ = d[1].error.message
       msg_.should.match /Cannot pop NON-EXISTING/
       done()
 
-  it 'WORKS if push-mem after increment', ->
+  it 'WORKS if push-mem after increment', (done) ->
 
     data = [
-      fix.acc(), fix.incrCap(555) , fix.pushM(500), fix.pushM(55)
+      fix.acc()
+      fix.incrCap 5
+      fix.pushM 1 # just to make u think
+      fix.pushM 1 # just to make u think
+      fix.pushM 5
     ]
 
     # thows if invalid data!
     validate snapshot, data
+    done()
+
+  it 'has NO issues if push-mem (SAME ID UNION) but LOW CAP', (done) ->
+
+    data = [
+      fix.acc()
+      fix.incrCap 5
+      fix.pushM 4 # 4x ids from seq
+      fix.pushM 1 # 1st-id again
+      fix.pushM 2 # 1st-id 2nd-id again
+      fix.pushM 4 # 1st-id 2nd-id 3rd-id 4th-id again
+    ]
+
+    validate snapshot, data
+    done()
+    
+
+  it 'has ISSUES if push-mem(new IDs) but LOW CAP', (done) ->
+
+    data = [
+      fix.acc()
+      fix.incrCap 6
+      fix.pushM 5  # 5x ids from seq
+      fix.pushM ['idX|not-in-prev-set' , 'idX|ANOTHER-not-in-prev-set' ]
+      fix.pushM ['idY|same' , 'idY|same-same' ]
+    ]
+
+    should.throws (->
+      validate snapshot, data),
+    (err) ->
+      d = err.data
+      console.log 'err +++', err, err.data
+      err.message.should.match /2 issue\(s\)/
+      
+      d[3].error.should.be
+      d[4].error.should.be
+      done()
 
   it 'will not handle crazy events', (done) ->
 
@@ -58,15 +100,13 @@ describe 'state validation', ->
       { type: 'crazy', just: "a-hack"}
     ]
 
-
     should.throws (->
       validate snapshot, data),
     (err) ->
       d = err.data
-      should( d[0].errors ).not.be
+      d[0].error.should.be
+      d[0].error.message.match /schema.*missing/
       done()
-   
-
 
   it 'has ISSUES on trial AFTER account', (done) ->
 
@@ -78,10 +118,9 @@ describe 'state validation', ->
       validate snapshot, data),
     (err) ->
       d = err.data
-      should( d[0].errors ).not.be
-      should( d[1].errors ).not.be
-      d[2].errors.length.should.eql 1
-      msg_ = d[2].errors[0].message
-      console.log 'd[2].errors[0].message', msg_
+      should( d[0].error ).not.be
+      should( d[1].error ).not.be
+      d[2].error.should.be
+      msg_ = d[2].error.message
       msg_.should.match /missmatch since 'account'/
       done()

@@ -1,6 +1,9 @@
 #fixture
+_ = require 'lodash'
+
 module.exports = fix =
 
+  
   members : [  
     'id1-doh'
     'id2-joh'
@@ -30,8 +33,14 @@ module.exports = fix =
     increment: i
 
   pushM : (x) ->
-    type: 'push-members'
-    members: fix.members[0...x]
+    if _.isArray x
+      type: 'push-members'
+      members: x
+    else if _.isNumber x
+      type: 'push-members'
+      members: fix.members[0...x]
+    else
+      throw new Error 'fixture says hmmf!'
 
   popM : (x) ->
     type: 'pop-members'

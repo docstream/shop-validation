@@ -3,12 +3,9 @@ _ = require 'lodash'
 assert = require 'assert'
 
 
-
 # ClientSide and ServerSide 
 
 # NB NB Compile-down! (no Promises)
-
-
 
 # export candidates -------------
 
@@ -132,8 +129,10 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
 
       # rule 2
       currCap = currentMemberCapacity precedingEvents, snapshot.memberCapacity
+      precedingMems = sqashedMembers precedingEvents
+      accumulatedMembers = _.union precedingMems, event.members
       errMsg = "Cannot [#{event.type}] now. OVERFLOW ! capacity = #{currCap}"
-      assert currCap >= event.members.length, errMsg
+      assert currCap >= accumulatedMembers.length, errMsg
 
     'pop-members' :  ->
       # rule 1
@@ -155,38 +154,48 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
 #   err = { .data=annotated-data-clone } instanceOf Error
 module.exports = validate = (snapshot, data ) ->
 
+  # state
   errs = 0
+
+  # mutator/helper
+  appendErr = (event,err) ->
+    event.error = err
+    errs += 1
+    event
 
   # mutates !
   annotatedData = _.map data, (ev,idx) ->
 
     ev_ = _.cloneDeep ev
 
-    assert (_.has evSchemas, ev.type) , "BUG!!! Schema for event [#{ev.type}] missing!"
+    unless (_.has evSchemas, ev.type)
+      err = new Error "BUG!!! Schema for event [#{ev.type}] missing!"
+      return appendErr ev,err
+   
+    console.log "Schema; found for [#{ev.type}]"
+    
     vStat = Joi.validate ev, evSchemas[ev.type]
-    if vStat.error
-      errs += 1
-      ev_.errors = [vStat.error]
-
+    return appendErr ev, vStat.error if vStat.error
+    
     console.log "Joi-valid; [#{ev.type}] = ", vStat?.error?.message or 'passed'
 
     precedingEvents = data[0...idx]
     checkers = checkOrderingRules ev,precedingEvents,snapshot
-    assert (_.has checkers, ev.type) , "BUG!!! Rules for event [#{ev.type}] missing!"
+    
+    unless (_.has checkers, ev.type)
+      err = new Error "BUG!!! Rules for event [#{ev.type}] missing!"
+      return appendErr ev,err
+
     try
       checkers[ev.type]()
       console.log "rules-check; [#{ev.type}] = passed"
+      ev_ # no errors
     catch err
-      errs += 1
-      ev_.errors = ev_.errors or []
-      ev_.errors.push err
       console.log "rules-check; [#{ev.type}] = ",err.message
-
-    ev_
+      return appendErr ev,err
+    
 
   if errs > 0
     err = new Error "Found #{errs} issue(s)"
     err.data = annotatedData
     throw err
-  else
-    console.log "WUT?!"
