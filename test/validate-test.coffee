@@ -43,6 +43,16 @@ describe 'state validation', ->
       msg_.should.match /Cannot pop NON-EXISTING/
       done()
 
+  it 'WORKS if push-mem after increment', ->
+
+    data = [
+      fix.acc(), fix.incrCap(555) , fix.pushM(500), fix.pushM(55)
+    ]
+
+    # thows if invalid data!
+    validate snapshot, data
+   
+
 
   it 'has ISSUES on trial AFTER account', (done) ->
 
