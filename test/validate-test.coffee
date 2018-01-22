@@ -79,7 +79,7 @@ describe 'state validation', ->
     validate snapshot2 , data
     done()
 
-  it 'RULES part not availNOOP ;;; coverage-max loophole', (done) ->
+  it 'RULES part not avail for NOOP ;;; coverage-max loophole', (done) ->
 
     data = [
       {type:'noop'}
