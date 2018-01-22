@@ -16,7 +16,7 @@ describe 'state validation', ->
       fix.acc(), fix.pushM(2)
     ]
 
-    should.throws (->
+    should.throws ( ->
       validate snapshot, data),
     (err) ->
       d = err.data

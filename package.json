@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "preinstall": "node_modules/.bin/coffee --bare --compile index.coffee",
-    "test": "./node_modules/.bin/mocha -R spec --require coffee-script/register \"test/**/*.coffee\""
+    "test": "./node_modules/.bin/mocha -R spec --require coffee-script/register --require coffee-coverage-loader \"test/**/*.coffee\"",
+    "istanbul" : "./node_modules/.bin/istanbul report text html; printf '\n\nMer detaljer? Kjør bare;\n x-www-browser ./coverage/index.html\n\n'",
+    "posttest" : "npm run-script istanbul"
   },
   "author": "",
   "license": "ISC",
@@ -15,7 +17,9 @@
   },
   "devDependencies": {
     "coffee-script": "^1.12.7",
+    "coffee-coverage": "^1.0.1",
     "mocha": "^5.0.0",
+    "istanbul": "^0.4.2",
     "should": "^13.2.1"
   }
 }
