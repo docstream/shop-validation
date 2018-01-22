@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "preinstall": "coffee index.coffee",
+    "preinstall": "node_modules/.bin/coffee --bare --compile index.coffee",
     "test": "./node_modules/.bin/mocha -R spec --require coffee-script/register \"test/**/*.coffee\""
   },
   "author": "",
