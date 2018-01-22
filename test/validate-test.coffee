@@ -44,7 +44,7 @@ describe 'state validation', ->
       msg_.should.match /Cannot pop NON-EXISTING/
       done()
 
-  it 'has ISSUES on pushMem if NO subscriberType', (done) ->
+  it 'has ISSUES on pushMem if STRANGE subscriberType', (done) ->
 
     data = [
       # neither account|trial|student
@@ -62,6 +62,34 @@ describe 'state validation', ->
       msg_ = d[0].error.message
       msg_.should.match /isnt \'account\'/
       done()
+
+  it 'has no issues on pushMem if subscriberType set in snap', (done) ->
+
+    data = [
+      # neither account|trial|student
+      fix.incrCap 1111
+    ]
+
+    snapshot2 =
+     idx: 42
+     subscriberType: 'account'
+
+    validate snapshot2 , data
+    done()
+
+  it 'RULES part not availNOOP ;;; coverage-max loophole', (done) ->
+
+    data = [
+      {type:'noop'}
+    ]
+
+    should.throws (->
+      validate snapshot , data),
+    (err) ->
+      d = err.data   
+      d[0].error.message.should.match /Rules for event \[noop\] missing/
+      done()
+
 
   it 'WORKS if pop-mem on Mem set', (done) ->
 

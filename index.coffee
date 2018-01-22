@@ -88,6 +88,9 @@ evSchemas =
     type: Joi.string().required().only 'trial'
     days: Joi.number().integer()
 
+  # for testing
+  'noop' : Joi.any()
+
 
 # challenge the STATE aka snapshot !
 checkOrderingRules = (event, precedingEvents, snapshot) ->
@@ -103,6 +106,7 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
       rule = _.some precedingEvents, (pEv) -> pEv.type == subsType
       assert rule, errMsg
     else if snapshot.subscriberType != subsType
+      console.warn '>>>> STRANGE snap=',snapshot
       assert.fail errMsg
 
    # SENTINEL helper
