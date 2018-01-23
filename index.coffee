@@ -197,7 +197,7 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
 module.exports = validate = (snapshot, data ) ->
 
   # state
-  lastErr = null
+  fstErr = null
   errs = 0
 
   Joi.attempt snapshot, snapshotType
@@ -205,7 +205,7 @@ module.exports = validate = (snapshot, data ) ->
   # mutator/helper
   appendErr = (event,err) ->
     event.error = err
-    lastErr = err
+    fstErr = fstErr or err
     errs += 1
     event
 
@@ -244,6 +244,6 @@ module.exports = validate = (snapshot, data ) ->
     
 
   if errs > 0
-    err = new Error "Found #{errs} issue(s) | last err; #{lastErr.message}"
+    err = new Error "Found #{errs} issue(s) | 1st err; #{fstErr.message}"
     err.data = annotatedData
     throw err
