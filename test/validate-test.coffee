@@ -7,9 +7,15 @@ describe 'state validation', ->
   validate = sut = require '../index.coffee'
   fix = require './ev-fixture.coffee'
 
+  # snapshot
+  #
+  #
+  #
+  #
+
   describe 'snapshot', ->
 
-    it 'fails if STRANGE context', (done) ->
+    it 'fails if STRANGE .context', (done) ->
 
       snapshot2 =
        idx: 42
@@ -23,7 +29,7 @@ describe 'state validation', ->
         err.message.should.match /"context" must be one of/
         done()
 
-    it 'fails if members without CAP', (done) ->
+    it 'fails if .members without .memberCapacity', (done) ->
 
       snapshot2 =
        idx: 42
@@ -37,6 +43,14 @@ describe 'state validation', ->
       (err) ->
         err.message.should.match /"members" missing required peer/
         done()
+
+
+
+  # events
+  #
+  #
+  #
+  #
 
 
   describe 'data - event combos', ->
@@ -83,7 +97,7 @@ describe 'state validation', ->
 
 
 
-    it 'has no issues on pushMem if subscriberType set in snap', (done) ->
+    it 'has no issues on pushMem if context set in snap', (done) ->
 
       data = [
         # neither account|trial|student
@@ -97,6 +111,35 @@ describe 'state validation', ->
       # 1
       validate snapshot2 , data
       done()
+
+    it 'handles student context', (done) ->
+
+      data = [
+        fix.student()
+      ]
+
+      # 1
+      validate snapshot , data
+      done()
+
+     it 'has ISSUES w context other than account if CAP incr', (done) ->
+
+      data = [
+        # neither account|trial|student
+        fix.incrCap 1111
+      ]
+
+      snapshot2 =
+       idx: 42
+       context: 'trial' 
+
+      # 1
+      should.throws (->
+        validate snapshot, data),
+      (err) ->
+        d = err.data
+        d[0].error.message.should.match /context different than/
+        done()
 
     it 'RULES part not avail for NOOP ;;; coverage-max loophole', (done) ->
 

@@ -16,7 +16,7 @@ contextType = Joi.string().only ['account','trial','student']
 universityType = Joi.object().keys
   name: Joi.string().required()
   course: Joi.string().required()
-  finishingYear: Joi.string().required()
+  finishingYear: Joi.number().integer()
 
 billingAddressType = Joi.object().keys
   addressLine1: Joi.string().required()
@@ -155,8 +155,8 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
     'trial' :  ->
       cannotConflictEarlierContext 'trial'
 
-    'university' :  ->
-      cannotConflictEarlierContext 'university'
+    'student' :  ->
+      cannotConflictEarlierContext 'student'
       
     'incr-member-cap' :  ->
       mustBelongToContext 'account'
@@ -197,6 +197,7 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
 module.exports = validate = (snapshot, data ) ->
 
   # state
+  lastErr = null
   errs = 0
 
   Joi.attempt snapshot, snapshotType
@@ -204,6 +205,7 @@ module.exports = validate = (snapshot, data ) ->
   # mutator/helper
   appendErr = (event,err) ->
     event.error = err
+    lastErr = err
     errs += 1
     event
 
@@ -219,9 +221,11 @@ module.exports = validate = (snapshot, data ) ->
     console.log "Schema; found for [#{ev.type}]"
     
     vStat = Joi.validate ev, evSchemas[ev.type]
-    return appendErr ev, vStat.error if vStat.error
+    if vStat.error
+      console.log "Joi invalid; [#{ev.type}] = ", vStat.error.message
+      return appendErr ev, vStat.error 
     
-    console.log "Joi-valid; [#{ev.type}] = ", vStat?.error?.message or 'passed'
+    console.log "Joi valid; [#{ev.type}] = ", vStat?.error?.message or 'passed'
 
     precedingEvents = data[0...idx]
     checkers = checkOrderingRules ev,precedingEvents,snapshot
@@ -232,14 +236,14 @@ module.exports = validate = (snapshot, data ) ->
 
     try
       checkers[ev.type]()
-      console.log "rules-check; [#{ev.type}] = passed"
+      console.log "rules checked; [#{ev.type}] = passed"
       ev_ # no errors
     catch err
-      console.log "rules-check; [#{ev.type}] = ",err.message
+      console.log "rules failing; [#{ev.type}] = ", err.message
       return appendErr ev,err
     
 
   if errs > 0
-    err = new Error "Found #{errs} issue(s)"
+    err = new Error "Found #{errs} issue(s) | last err; #{lastErr.message}"
     err.data = annotatedData
     throw err

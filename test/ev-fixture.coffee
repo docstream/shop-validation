@@ -16,6 +16,14 @@ module.exports = fix =
     type: 'trial'
     days: 500
 
+  student : ->
+    type: 'student'
+    name: 'girly jensen'
+    university: 
+      name: 'honolulu'
+      course: 'eventSourcing'
+      finishingYear: 3001
+
   acc : ->
     type: 'account'
     name: 'PER AS'
