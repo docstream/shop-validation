@@ -53,14 +53,14 @@ describe 'state validation', ->
 
     snapshot2 =
      idx: 42
-     subscriberType: 'x'
+     context: 'x'
 
     should.throws (->
       validate snapshot2 , data),
     (err) ->
       d = err.data
       msg_ = d[0].error.message
-      msg_.should.match /isnt \'account\'/
+      msg_.should.match /different than \'account\'/
       done()
 
   it 'has no issues on pushMem if subscriberType set in snap', (done) ->
@@ -72,7 +72,7 @@ describe 'state validation', ->
 
     snapshot2 =
      idx: 42
-     subscriberType: 'account' 
+     context: 'account' 
 
     # 1
 

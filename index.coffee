@@ -9,14 +9,30 @@ assert = require 'assert'
 
 # export candidates -------------
 
-# SCHEMA
-subscriberType = Joi.string().required().only ['account','trial','student']
+# SCHEMAs
 
-snapshotType = Joi.object()
+# genesis-block .types
+contextType = Joi.string().required().only ['account','trial','student']
+
+universityType = Joi.object().keys
+  name: Joi.string().required()
+  course: Joi.string().required()
+  finishingYear: Joi.string().required()
+
+billingAddressType = Joi.object().keys
+  addressLine1: Joi.string().required()
+  addressLine2: Joi.string()
+  city: Joi.string().required()
+  zip: Joi.string().required()
+  region: Joi.string()
+  country: Joi.string()
+
+snapshotType = Joi.object().keys
+  context: contextType
 
 # Event -> boolean
-isSubscriberTypeEvent = (ev) ->
-  !(Joi.validate ev.type, subscriberType).error
+isContextEvent = (ev) ->
+  !(Joi.validate ev.type, contextType).error
 
 # [Event] -> Int
 sumOfIncrements = (events) ->
@@ -48,20 +64,14 @@ sqashedMembers = (events, members=[]) ->
 # [{}] 
 evSchemas =
 
-  # subscriper-type
+  # genesis
   'account' : Joi.object().keys
     type: Joi.string().required().only 'account'
     name: Joi.string().required()
     phone: Joi.string()
-    billingAddress: Joi.object().keys
-      addressLine1: Joi.string().required()
-      addressLine2: Joi.string()
-      city: Joi.string().required()
-      zip: Joi.string().required()
-      region: Joi.string()
-      country: Joi.string()
+    billingAddress: billingAddressType
 
-  'incr-member-cap' :
+  'incr-member-cap' : Joi.object().keys
     type: Joi.string().required().only 'incr-member-cap'
     increment: Joi.number().integer()
 
@@ -73,22 +83,19 @@ evSchemas =
     type: Joi.string().required().only 'pop-members'
     members: Joi.array().items Joi.string()
 
-  # subscriper-type
+  # genesis
   'student' : Joi.object().keys
     type: Joi.string().required().only 'student'
     name: Joi.string().required()
     phone: Joi.string()
-    univerity: Joi.object().keys
-      name: Joi.string().required()
-      course: Joi.string().required()
-      finishingYear: Joi.string().required()
+    university: universityType
 
-  # subscriper-type
+  # genesis
   'trial' : Joi.object().keys
     type: Joi.string().required().only 'trial'
     days: Joi.number().integer()
 
-  # for testing
+  # genesis
   'noop' : Joi.any()
 
 
@@ -98,40 +105,43 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
   #console.log "precedingEvents",precedingEvents
 
   # SENTINEL helper
-  # subscriberType -> Either<Err,Void>
-  mustBelongToSubscriberType = (subsType) ->
-    Joi.attempt subsType, subscriberType
-    errMsg = "[.subscriberType] isnt '#{subsType}' !"
-    if precedingEvents.length>0 and snapshot.subscriberType != subsType
-      rule = _.some precedingEvents, (pEv) -> pEv.type == subsType
+  # context -> Either<Err,Void>
+  mustBelongToContext = (context) ->
+    Joi.attempt context, contextType
+    errMsg = "context different than '#{context}' !"
+    if precedingEvents.length>0 and snapshot.context != context
+      rule = _.some precedingEvents, (pEv) -> pEv.type == context
       assert rule, errMsg
-    else if snapshot.subscriberType != subsType
+    else if snapshot.context != context
       console.warn '>>>> STRANGE snap=',snapshot
       assert.fail errMsg
 
    # SENTINEL helper
-  cannotConflictEarlierSubscriberType = (subsType) ->
-    Joi.attempt subsType, subscriberType
-    precedingSubsType = (_.find precedingEvents, isSubscriberTypeEvent)?.type
-    earliestSubsType = snapshot.subscriberType or precedingSubsType
-    if earliestSubsType and earliestSubsType != subsType
+  cannotConflictEarlierContext = (context) ->
+    Joi.attempt context, contextType
+    precedingType = (_.find precedingEvents, isContextEvent)?.type
+    earliestContext = snapshot.context or precedingType
+    if earliestContext and earliestContext != context
       assert.fail "Cannot [#{event.type}] now.\n
-       \\_ [subscriberType] missmatch since '#{earliestSubsType}' found!"
+       \\_ [context] missmatch since '#{earliestContext}' is our context!"
 
   {
     'account' :  ->
-      cannotConflictEarlierSubscriberType 'account'
+      cannotConflictEarlierContext 'account'
      
     'trial' :  ->
-      cannotConflictEarlierSubscriberType 'trial'
+      cannotConflictEarlierContext 'trial'
+
+    'university' :  ->
+      cannotConflictEarlierContext 'university'
       
     'incr-member-cap' :  ->
-      mustBelongToSubscriberType 'account'
+      mustBelongToContext 'account'
       # TODO max-min check?
 
     'push-members' :  ->
       # rule 1
-      mustBelongToSubscriberType 'account'
+      mustBelongToContext 'account'
 
       # rule 2
       currCap = currentMemberCapacity precedingEvents, snapshot.memberCapacity
@@ -144,7 +154,7 @@ checkOrderingRules = (event, precedingEvents, snapshot) ->
 
     'pop-members' :  ->
       # rule 1
-      mustBelongToSubscriberType 'account'
+      mustBelongToContext 'account'
 
       # rule 2
       currMembers = sqashedMembers precedingEvents, snapshot.members
