@@ -1,3 +1,6 @@
 node_modules/
+
 *.js
+!coffee-coverage-loader.js
+
 coverage/

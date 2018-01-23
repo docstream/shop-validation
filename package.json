@@ -6,8 +6,8 @@
   "scripts": {
     "preinstall": "node_modules/.bin/coffee --bare --compile index.coffee",
     "test": "./node_modules/.bin/mocha -R spec --require coffee-script/register --require coffee-coverage-loader \"test/**/*.coffee\"",
-    "istanbul" : "./node_modules/.bin/istanbul report text html; printf '\n\nMer detaljer? Kjør bare;\n x-www-browser ./coverage/index.html\n\n'",
-    "posttest" : "npm run-script istanbul"
+    "istanbul": "./node_modules/.bin/istanbul report text html; printf '\n\nMer detaljer? Kjør bare;\n x-www-browser ./coverage/index.html\n\n'",
+    "posttest": "npm run-script istanbul"
   },
   "author": "",
   "license": "ISC",
