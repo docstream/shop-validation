@@ -2,7 +2,6 @@ Joi = require 'joi'
 _ = require 'lodash'
 assert = require 'assert'
 
-
 # ClientSide and ServerSide 
 
 # NB NB Compile-down! (no Promises)
@@ -11,8 +10,8 @@ assert = require 'assert'
 
 # SCHEMAs
 
-# genesis-block .types
-contextType = Joi.string().required().only ['account','trial','student']
+# event.types valid as CONTEXT
+contextType = Joi.string().only ['account','trial','student']
 
 universityType = Joi.object().keys
   name: Joi.string().required()
@@ -27,8 +26,32 @@ billingAddressType = Joi.object().keys
   region: Joi.string()
   country: Joi.string()
 
-snapshotType = Joi.object().keys
-  context: contextType
+snapshotType = Joi.object().keys {
+    productID: Joi.string()
+    ownerID: Joi.string()
+    idx: Joi.number().integer()
+    # --------------------------------------
+    context: contextType
+    modified: Joi.date()
+    modifierId: Joi.string()
+    # ------------- common unless [trial]
+    name: Joi.string()
+    phone: Joi.string()
+    #-------------- account (normal)
+    memberCapacity: Joi.number().integer()
+    billingAddress: billingAddressType
+    members: Joi.array().items Joi.string()
+    # ------------- student
+    university: universityType
+    # ------------- trial
+    days: Joi.number().integer()
+  }
+  # typical CONTEXT trails 
+  .with 'members', ['memberCapacity','billingAddress'] 
+  .without 'days', ['billingAddress','university'] # ? 'name','phone'
+  .without 'university', ['billingAddress','days']
+
+
 
 # Event -> boolean
 isContextEvent = (ev) ->
@@ -95,7 +118,7 @@ evSchemas =
     type: Joi.string().required().only 'trial'
     days: Joi.number().integer()
 
-  # genesis
+  # TEST!
   'noop' : Joi.any()
 
 
@@ -175,6 +198,8 @@ module.exports = validate = (snapshot, data ) ->
 
   # state
   errs = 0
+
+  Joi.attempt snapshot, snapshotType
 
   # mutator/helper
   appendErr = (event,err) ->
