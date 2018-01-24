@@ -12,31 +12,29 @@ assert = require 'assert'
 isContextEvent = (ev) ->
   !(Joi.validate ev.type, baseSchemas.context).error
 
-# [Event] -> Int
-sumOfIncrements = (events) ->
-  _.reduce events, ((sum,ev) ->
-    if ev.type == 'incr-member-cap'
-      sum + ev.increment
-    else
-      sum
-  ),0
+reducers = 
 
-# [Event] -> Int -> Int
-currentMemberCapacity = (events, cap=0) ->
-  cap + (sumOfIncrements events)
+  # [Event] -> Int
+  sumOfIncrements : (events) ->
+    _.reduce events, ((sum,ev) ->
+      if ev.type == 'incr-member-cap'
+        sum + ev.increment
+      else
+        sum
+    ),0
 
-# [Event] -> [ids] -> [ids]
-sqashedMembers = (events, members=[]) ->
-  _.reduce events, ((acc,ev) ->
-    if ev.type == 'push-members'
-      # add
-      acc = _.union acc, ev.members
-    else if ev.type == 'pop-members'
-      # remove/pop
-      acc = _.remove acc, (mem) ->
-        mem in ev.members
-    acc
-  ), members
+  # [Event] -> [ids] -> [ids]
+  sqashedMembers : (events, members=[]) ->
+    _.reduce events, ((acc,ev) ->
+      if ev.type == 'push-members'
+        # add
+        acc = _.union acc, ev.members
+      else if ev.type == 'pop-members'
+        # remove/pop
+        acc = _.remove acc, (mem) ->
+          mem in ev.members
+      acc
+    ), members
 
 
 baseSchemas = 
@@ -131,6 +129,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
       assert.fail "Cannot [#{event.type}] now.\n
        \\_ [context] missmatch since '#{earliestContext}' is our context!"
 
+
   {
     'account' :  ->
       cannotConflictEarlierContext 'account'
@@ -150,8 +149,12 @@ checkOrderingRules = (event, precedingEvents, state) ->
       mustBelongToContext 'account'
 
       # rule 2
+      # [Event] -> Int -> Int
+      currentMemberCapacity = (events, cap=0) ->
+        cap + (reducers.sumOfIncrements events)
+
       currCap = currentMemberCapacity precedingEvents, state.memberCapacity
-      precedingMems = sqashedMembers precedingEvents
+      precedingMems = reducers.sqashedMembers precedingEvents
       # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
       accumulatedMembers = _.union precedingMems, event.members
       
@@ -163,7 +166,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
       mustBelongToContext 'account'
 
       # rule 2
-      currMembers = sqashedMembers precedingEvents, state.members
+      currMembers = reducers.sqashedMembers precedingEvents, state.members
       # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
       diff = _.difference event.members, currMembers
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
@@ -177,7 +180,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
 # returns VOID
 # throws
 #   err = { .data=annotated-data-clone } instanceOf Error
-module.exports = validate = (state, data ) ->
+validate = (state, data ) ->
 
   # state
   fstErr = null
@@ -233,3 +236,7 @@ module.exports = validate = (state, data ) ->
     err = new Error "Found #{errs} issue(s) | 1st err; #{fstErr.message}"
     err.data = annotatedData
     throw err
+
+module.exports = 
+  validate: validate
+  reducers: reducers

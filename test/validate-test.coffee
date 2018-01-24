@@ -4,7 +4,7 @@ _ =  require 'lodash'
 
 describe 'validation', ->
 
-  validate = sut = require '../index.coffee'
+  sut = require '../index.coffee'
   fix = require './ev-fixture.coffee'
 
   # S T A T E
@@ -23,7 +23,7 @@ describe 'validation', ->
       data = [ {} ] # not important
 
       should.throws (->
-        validate state2 , data),
+        sut.validate state2 , data),
       (err) ->
         err.message.should.match /"context" must be one of/
         done()
@@ -37,7 +37,7 @@ describe 'validation', ->
       data = [ {} ] # not important
 
       should.throws (->
-        validate state2 , data),
+        sut.validate state2 , data),
       (err) ->
         err.message.should.match /"members" missing required peer/
         done()
@@ -51,7 +51,7 @@ describe 'validation', ->
       data = [ {} ] # not important
 
       should.throws (->
-        validate state2 , data),
+        sut.validate state2 , data),
       (err) ->
         err.message.should.match /"memberCapacity" must be a number/
         done()
@@ -77,7 +77,7 @@ describe 'validation', ->
       ]
 
       should.throws ( ->
-        validate state, data),
+        sut.validate state, data),
       (err) ->
         d = err.data
         should( d[0].errors ).not.be
@@ -94,7 +94,7 @@ describe 'validation', ->
       ]
 
       should.throws (->
-        validate state, data),
+        sut.validate state, data),
       (err) ->
         d = err.data
         should( d[0].error ).not.be
@@ -117,7 +117,7 @@ describe 'validation', ->
        context: 'account' 
 
       # 1
-      validate state2 , data
+      sut.validate state2 , data
       done()
 
     it 'handles student context', (done) ->
@@ -127,7 +127,7 @@ describe 'validation', ->
       ]
 
       # 1
-      validate state , data
+      sut.validate state , data
       done()
 
      it 'has ISSUES w context other than account if CAP incr', (done) ->
@@ -143,7 +143,7 @@ describe 'validation', ->
 
       # 1
       should.throws (->
-        validate state, data),
+        sut.validate state, data),
       (err) ->
         d = err.data
         d[0].error.message.should.match /context different than/
@@ -156,7 +156,7 @@ describe 'validation', ->
       ]
 
       should.throws (->
-        validate state , data),
+        sut.validate state , data),
       (err) ->
         d = err.data   
         d[0].error.message.should.match /Rules for event \[\[noop\] 0\] missing/
@@ -173,7 +173,7 @@ describe 'validation', ->
         fix.popM 1 # 0 left
       ]
 
-      validate state, data
+      sut.validate state, data
       done()
 
 
@@ -188,7 +188,7 @@ describe 'validation', ->
       ]
 
       # thows if invalid data!
-      validate state, data
+      sut.validate state, data
       done()
 
     it 'has NO issues if push-mem (SAME ID UNION) but LOW CAP', (done) ->
@@ -202,7 +202,7 @@ describe 'validation', ->
         fix.pushM 4 # 1st-id 2nd-id 3rd-id 4th-id again
       ]
 
-      validate state, data
+      sut.validate state, data
       done()
       
 
@@ -217,7 +217,7 @@ describe 'validation', ->
       ]
 
       should.throws (->
-        validate state, data),
+        sut.validate state, data),
       (err) ->
         d = err.data
         err.message.should.match /2 issue\(s\)/
@@ -232,7 +232,7 @@ describe 'validation', ->
       ]
 
       should.throws (->
-        validate state, data),
+        sut.validate state, data),
       (err) ->
         d = err.data
         d[0].error.should.be
@@ -247,7 +247,7 @@ describe 'validation', ->
       ]
 
       should.throws (->
-        validate state, data),
+        sut.validate state, data),
       (err) ->
         d = err.data
         d[0].error.should.be
@@ -269,7 +269,7 @@ describe 'validation', ->
       ]
 
       should.throws (->
-        validate state, data),
+        sut.validate state, data),
       (err) ->
         d = err.data
         should( d[0].error ).not.be
