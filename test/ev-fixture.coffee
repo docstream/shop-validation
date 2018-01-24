@@ -18,7 +18,6 @@ module.exports = fix =
 
   student : ->
     type: 'student'
-    name: 'girly jensen'
     university: 
       name: 'honolulu'
       course: 'eventSourcing'
@@ -26,9 +25,9 @@ module.exports = fix =
 
   acc : ->
     type: 'account'
-    name: 'PER AS'
-    phone: 'xx-999'
-    billingAddress: 
+    org: 
+      name: 'PER AS'
+      phone: 'xx-999'
       addressLine1: 'somewhere'
       addressLine2: 'more spesific'
       city: 'Jaren'

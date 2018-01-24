@@ -1,47 +1,59 @@
 assert = require 'assert'
-shoudl = require 'should'
+should = require 'should'
 _ =  require 'lodash'
 
-describe 'state validation', ->
+describe 'validation', ->
 
   validate = sut = require '../index.coffee'
   fix = require './ev-fixture.coffee'
 
-  # snapshot
+  # S T A T E
   #
   #
   #
   #
 
-  describe 'snapshot', ->
+  describe 'state', ->
 
     it 'fails if STRANGE .context', (done) ->
 
-      snapshot2 =
-       idx: 42
+      state2 =
        context: 'x'
 
       data = [ {} ] # not important
 
       should.throws (->
-        validate snapshot2 , data),
+        validate state2 , data),
       (err) ->
         err.message.should.match /"context" must be one of/
         done()
 
     it 'fails if .members without .memberCapacity', (done) ->
 
-      snapshot2 =
-       idx: 42
+      state2 =
        context: 'account'
        members: ['xxx']
 
       data = [ {} ] # not important
 
       should.throws (->
-        validate snapshot2 , data),
+        validate state2 , data),
       (err) ->
         err.message.should.match /"members" missing required peer/
+        done()
+
+    it 'fails if bad props', (done) ->
+
+      state2 =
+       context: 'account'
+       memberCapacity: 'text'
+
+      data = [ {} ] # not important
+
+      should.throws (->
+        validate state2 , data),
+      (err) ->
+        err.message.should.match /"memberCapacity" must be a number/
         done()
 
 
@@ -55,11 +67,7 @@ describe 'state validation', ->
 
   describe 'data - event combos', ->
 
-    snapshot =
-      productID: 'p1'
-      ownerID: 'o1'
-      idx: 1000
-      # ---
+    state = {}
 
     it 'has ISSUES on push-mem without CAP set', (done) ->
 
@@ -69,7 +77,7 @@ describe 'state validation', ->
       ]
 
       should.throws ( ->
-        validate snapshot, data),
+        validate state, data),
       (err) ->
         d = err.data
         should( d[0].errors ).not.be
@@ -86,7 +94,7 @@ describe 'state validation', ->
       ]
 
       should.throws (->
-        validate snapshot, data),
+        validate state, data),
       (err) ->
         d = err.data
         should( d[0].error ).not.be
@@ -104,12 +112,12 @@ describe 'state validation', ->
         fix.incrCap 1111
       ]
 
-      snapshot2 =
+      state2 =
        idx: 42
        context: 'account' 
 
       # 1
-      validate snapshot2 , data
+      validate state2 , data
       done()
 
     it 'handles student context', (done) ->
@@ -119,7 +127,7 @@ describe 'state validation', ->
       ]
 
       # 1
-      validate snapshot , data
+      validate state , data
       done()
 
      it 'has ISSUES w context other than account if CAP incr', (done) ->
@@ -129,13 +137,13 @@ describe 'state validation', ->
         fix.incrCap 1111
       ]
 
-      snapshot2 =
+      state2 =
        idx: 42
        context: 'trial' 
 
       # 1
       should.throws (->
-        validate snapshot, data),
+        validate state, data),
       (err) ->
         d = err.data
         d[0].error.message.should.match /context different than/
@@ -148,10 +156,10 @@ describe 'state validation', ->
       ]
 
       should.throws (->
-        validate snapshot , data),
+        validate state , data),
       (err) ->
         d = err.data   
-        d[0].error.message.should.match /Rules for event \[noop\] missing/
+        d[0].error.message.should.match /Rules for event \[\[noop\] 0\] missing/
         done()
 
 
@@ -165,7 +173,7 @@ describe 'state validation', ->
         fix.popM 1 # 0 left
       ]
 
-      validate snapshot, data
+      validate state, data
       done()
 
 
@@ -180,7 +188,7 @@ describe 'state validation', ->
       ]
 
       # thows if invalid data!
-      validate snapshot, data
+      validate state, data
       done()
 
     it 'has NO issues if push-mem (SAME ID UNION) but LOW CAP', (done) ->
@@ -194,7 +202,7 @@ describe 'state validation', ->
         fix.pushM 4 # 1st-id 2nd-id 3rd-id 4th-id again
       ]
 
-      validate snapshot, data
+      validate state, data
       done()
       
 
@@ -209,7 +217,7 @@ describe 'state validation', ->
       ]
 
       should.throws (->
-        validate snapshot, data),
+        validate state, data),
       (err) ->
         d = err.data
         err.message.should.match /2 issue\(s\)/
@@ -224,26 +232,33 @@ describe 'state validation', ->
       ]
 
       should.throws (->
-        validate snapshot, data),
+        validate state, data),
       (err) ->
         d = err.data
         d[0].error.should.be
         d[0].error.message.match /schema.*missing/
         done()
 
-    it 'will not handle invalid events, props missing', (done) ->
+    it 'will not handle JOI-invalid events, props missing', (done) ->
 
       data = [
-        { type: 'account' } # .name missing
+        { type: 'trial' }   # .days missing
+        { type: 'student' } # .university missing
       ]
 
       should.throws (->
-        validate snapshot, data),
+        validate state, data),
       (err) ->
         d = err.data
         d[0].error.should.be
+        d[1].error.should.be
+
         d[0].error.isJoi.should.be.ok
-        d[0].error.message.should.match /"name" is required/
+        d[1].error.isJoi.should.be.ok
+
+        d[0].error.message.should.match /"days" is required/
+        d[1].error.message.should.match /"university" is required/
+
         done()
 
 
@@ -254,7 +269,7 @@ describe 'state validation', ->
       ]
 
       should.throws (->
-        validate snapshot, data),
+        validate state, data),
       (err) ->
         d = err.data
         should( d[0].error ).not.be
