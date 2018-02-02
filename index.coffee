@@ -10,9 +10,11 @@ assert = require 'assert'
 
 # Event -> boolean
 isContextEvent = (ev) ->
-  !(Joi.validate ev.type, baseSchemas.context).error
+  !(Joi.validate ev.type, baseSchemas.ctxType).error
 
 reducers = 
+
+  # dueDate
 
   # [Event] -> Int
   sumOfIncrements : (events) ->
@@ -36,10 +38,13 @@ reducers =
       acc
     ), members
 
+validCtxTypes = ['account','trial','student']
 
 baseSchemas = 
+  'ctxType' : Joi.string().only validCtxTypes
 
-  'context' :  Joi.string().only ['account','trial','student']
+  'context' :  Joi.object().keys
+    type: Joi.string().only validCtxTypes
 
   'university' : Joi.object().keys
     name: Joi.string().required()
@@ -59,10 +64,10 @@ baseSchemas =
 # only whats needed here, can have MORE !!
 orderStateSchema = Joi.object().keys {
     memberCapacity: Joi.number().integer()
-    members: Joi.array().items Joi.string()
+    memberSet: Joi.array().items Joi.string()
     context: baseSchemas.context
   }
-  .with 'members', 'memberCapacity'
+  .with 'memberSet', 'memberCapacity'
 
 
 # [{}]
@@ -110,22 +115,22 @@ checkOrderingRules = (event, precedingEvents, state) ->
 
   # SENTINEL helper
   # context -> Either<Err,Void>
-  mustBelongToContext = (context) ->
-    Joi.attempt context, baseSchemas.context
-    errMsg = "context different than '#{context}' !"
-    if precedingEvents.length>0 and state.context != context
-      rule = _.some precedingEvents, (pEv) -> pEv.type == context
+  mustBelongToContextType = (contextType) ->
+    Joi.attempt contextType, baseSchemas.ctxType
+    errMsg = "context-type different than '#{contextType}' !"
+    if precedingEvents.length>0 and state?.context?.type != contextType
+      rule = _.some precedingEvents, (pEv) -> pEv.type == contextType
       assert rule, errMsg
-    else if state.context != context
+    else if state?.context?.type != contextType
       console.warn '>>>> STRANGE snap=',state
       assert.fail errMsg
 
    # SENTINEL helper
-  cannotConflictEarlierContext = (context) ->
-    Joi.attempt context, baseSchemas.context
+  cannotConflictEarlierContext = (contextType) ->
+    Joi.attempt contextType, baseSchemas.ctxType
     precedingType = (_.find precedingEvents, isContextEvent)?.type
-    earliestContext = state.context or precedingType
-    if earliestContext and earliestContext != context
+    earliestContext = state?.context?.type or precedingType
+    if earliestContext and earliestContext != contextType
       assert.fail "Cannot [#{event.type}] now.\n
        \\_ [context] missmatch since '#{earliestContext}' is our context!"
 
@@ -141,12 +146,12 @@ checkOrderingRules = (event, precedingEvents, state) ->
       cannotConflictEarlierContext 'student'
       
     'incr-member-cap' :  ->
-      mustBelongToContext 'account'
+      mustBelongToContextType 'account'
       # TODO max-min check?
 
     'push-members' :  ->
       # rule 1
-      mustBelongToContext 'account'
+      mustBelongToContextType 'account'
 
       # rule 2
       # [Event] -> Int -> Int
@@ -163,10 +168,10 @@ checkOrderingRules = (event, precedingEvents, state) ->
 
     'pop-members' :  ->
       # rule 1
-      mustBelongToContext 'account'
+      mustBelongToContextType 'account'
 
       # rule 2
-      currMembers = reducers.sqashedMembers precedingEvents, state.members
+      currMembers = reducers.sqashedMembers precedingEvents, state.memberSet
       # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
       diff = _.difference event.members, currMembers
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"

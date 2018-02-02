@@ -18,34 +18,37 @@ describe 'validation', ->
     it 'fails if STRANGE .context', (done) ->
 
       state2 =
-       context: 'x'
+       context:
+        type:'x'
 
       data = [ {} ] # not important
 
       should.throws (->
         sut.validate state2 , data),
       (err) ->
-        err.message.should.match /"context" must be one of/
+        err.message.should.match /"type" must be one of/
         done()
 
     it 'fails if .members without .memberCapacity', (done) ->
 
       state2 =
-       context: 'account'
-       members: ['xxx']
+       context: 
+        type : 'account'
+       memberSet: ['xxx']
 
       data = [ {} ] # not important
 
       should.throws (->
         sut.validate state2 , data),
       (err) ->
-        err.message.should.match /"members" missing required peer/
+        err.message.should.match /"memberSet" missing required peer/
         done()
 
     it 'fails if bad props', (done) ->
 
       state2 =
-       context: 'account'
+       context: 
+         type: 'account'
        memberCapacity: 'text'
 
       data = [ {} ] # not important
@@ -114,7 +117,8 @@ describe 'validation', ->
 
       state2 =
        idx: 42
-       context: 'account' 
+       context: 
+         type: 'account' 
 
       # 1
       sut.validate state2 , data
@@ -139,14 +143,15 @@ describe 'validation', ->
 
       state2 =
        idx: 42
-       context: 'trial' 
+       context: 
+         type:'trial' 
 
       # 1
       should.throws (->
         sut.validate state, data),
       (err) ->
         d = err.data
-        d[0].error.message.should.match /context different than/
+        d[0].error.message.should.match /context-type different than/
         done()
 
     it 'RULES part not avail for NOOP ;;; coverage-max loophole', (done) ->
