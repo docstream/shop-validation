@@ -171,6 +171,7 @@ describe 'validation', ->
     it 'WORKS if pop-mem on Mem set', (done) ->
 
       data = [
+        fix.trial()
         fix.acc()
         fix.incrCap 111
         fix.pushM 5

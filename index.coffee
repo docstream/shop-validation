@@ -126,24 +126,26 @@ checkOrderingRules = (event, precedingEvents, state) ->
       assert.fail errMsg
 
    # SENTINEL helper
-  cannotConflictEarlierContext = (contextType) ->
-    Joi.attempt contextType, baseSchemas.ctxType
+  cannotConflictEarlierContext = (contextTypes) ->
+    _.each contextTypes, (t) ->
+      Joi.attempt t, baseSchemas.ctxType
+
     precedingType = (_.find precedingEvents, isContextEvent)?.type
     earliestContext = state?.context?.type or precedingType
-    if earliestContext and earliestContext != contextType
+    if earliestContext and not (earliestContext in contextTypes)
       assert.fail "Cannot [#{event.type}] now.\n
        \\_ [context] missmatch since '#{earliestContext}' is our context!"
 
 
   {
     'account' :  ->
-      cannotConflictEarlierContext 'account'
+      cannotConflictEarlierContext ['account','trial']
      
     'trial' :  ->
-      cannotConflictEarlierContext 'trial'
+      cannotConflictEarlierContext ['trial']
 
     'student' :  ->
-      cannotConflictEarlierContext 'student'
+      cannotConflictEarlierContext ['student']
       
     'incr-member-cap' :  ->
       mustBelongToContextType 'account'
