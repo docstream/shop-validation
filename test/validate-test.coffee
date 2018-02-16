@@ -89,6 +89,8 @@ describe 'validation', ->
         done()
 
 
+
+
     it 'has ISSUES if pop-mem not-existing', (done) ->
 
       data = [
@@ -210,6 +212,26 @@ describe 'validation', ->
 
       sut.validate state, data
       done()
+
+    it 'has ISSUES if push-mem but LOW STATE cap', (done) ->
+
+      state_ =
+        idx: 1
+        context: 
+          type:'account'
+        memberCapacity: 1
+
+      data = [
+        fix.pushM 1 # 1x ids from seq
+        fix.pushM 2 # 2x ids from seq, merging no1
+      ]
+
+      should.throws ( ->
+        sut.validate state_, data),
+      (err) ->
+        d = err.data   
+        d[1].error.message.should.match /OVERFLOW/
+        done()
       
 
     it 'has ISSUES if push-mem(new IDs) but LOW CAP', (done) ->

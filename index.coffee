@@ -162,6 +162,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
 
       currCap = currentMemberCapacity precedingEvents, state.memberCapacity
       precedingMems = reducers.sqashedMembers precedingEvents
+      
       # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
       accumulatedMembers = _.union precedingMems, event.members
       
