@@ -221,16 +221,13 @@ describe 'validation', ->
           type:'account'
         memberCapacity: 1
 
-      data = [
-        fix.pushM 1 # 1x ids from seq
-        fix.pushM 2 # 2x ids from seq, merging no1
-      ]
+      data = [ fix.pushM 2 ]
 
       should.throws ( ->
         sut.validate state_, data),
       (err) ->
         d = err.data   
-        d[1].error.message.should.match /OVERFLOW/
+        d[0].error.message.should.match /OVERFLOW/
         done()
       
 
