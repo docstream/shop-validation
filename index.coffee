@@ -160,14 +160,14 @@ checkOrderingRules = (event, precedingEvents, state) ->
       currentMemberCapacity = (events, cap=0) ->
         cap + (reducers.sumOfIncrements events)
 
-      console.log "state >", state
+      console.log "state MEMz >", state.emberSet
       currCap = currentMemberCapacity precedingEvents, state.memberCapacity
       console.log "Calculated; currCap #{currCap}"
       precedingMems = reducers.sqashedMembers precedingEvents
       console.log "Calculated; precedingMems #{precedingMems}"
       
       # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
-      accumulatedMembers = _.union precedingMems, event.members
+      accumulatedMembers = _.union precedingMems, event.members, state.memberSet
       console.log "Calculated; accumulatedMembers #{accumulatedMembers}"
       
       errMsg = "Cannot [#{event.type}] now. OVERFLOW ! capacity = #{currCap}"
