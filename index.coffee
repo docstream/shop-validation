@@ -135,7 +135,16 @@ checkOrderingRules = (event, precedingEvents, state) ->
     if earliestContext and not (earliestContext in contextTypes)
       assert.fail "Cannot [#{event.type}] now.\n
        \\_ [context] missmatch since '#{earliestContext}' is our context!"
+  
+  currCap = ->
+    (state.memberCapacity or 0) + (reducers.sumOfIncrements precedingEvents)
 
+  accumulatedMembers = ->
+    precedingMems = reducers.sqashedMembers precedingEvents
+    console.log "Calculated; precedingMems #{precedingMems}"
+      
+    # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
+    _.union precedingMems, event.members, state.memberSet
 
   {
     'account' :  ->
@@ -149,29 +158,32 @@ checkOrderingRules = (event, precedingEvents, state) ->
       
     'incr-member-cap' :  ->
       mustBelongToContextType 'account'
-      # TODO max-min check?
+      
+      currCap_ = currCap()
+      console.log "Calculated; currCap #{currCap_}"
+      newCap = currCap_ + event.increment 
+      console.log "Calculated; newCap #{newCap}"
+      accumulatedMembers_ = accumulatedMembers()
+      console.log "Calculated; accumulatedMembers #{accumulatedMembers_}"
+
+      errMsg = "Cannot [#{event.type}] now. 
+        Cap try [#{newCap}] but mem-cnt is [#{accumulatedMembers_.length}]"
+      assert newCap >= accumulatedMembers_.length, errMsg
+
 
     'push-members' :  ->
       # rule 1
       mustBelongToContextType 'account'
 
-      # rule 2
-      # [Event] -> Int -> Int
-      currentMemberCapacity = (events, cap=0) ->
-        cap + (reducers.sumOfIncrements events)
-
       console.log "state MEMz >", state.emberSet
-      currCap = currentMemberCapacity precedingEvents, state.memberCapacity
-      console.log "Calculated; currCap #{currCap}"
-      precedingMems = reducers.sqashedMembers precedingEvents
-      console.log "Calculated; precedingMems #{precedingMems}"
+      currCap_ = currCap()
+      console.log "Calculated; currCap #{currCap_}"
       
-      # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
-      accumulatedMembers = _.union precedingMems, event.members, state.memberSet
-      console.log "Calculated; accumulatedMembers #{accumulatedMembers}"
+      accumulatedMembers_ = accumulatedMembers()
+      console.log "Calculated; accumulatedMembers #{accumulatedMembers_}"
       
-      errMsg = "Cannot [#{event.type}] now. OVERFLOW ! capacity = #{currCap}"
-      assert currCap >= accumulatedMembers.length, errMsg
+      errMsg = "Cannot [#{event.type}] now. OVERFLOW ! capacity = #{currCap_}"
+      assert currCap_ >= accumulatedMembers_.length, errMsg
 
     'pop-members' :  ->
       # rule 1

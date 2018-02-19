@@ -199,6 +199,25 @@ describe 'validation', ->
       sut.validate state, data
       done()
 
+    it 'fails if NEG increment after push-mem', (done) ->
+
+      data = [
+        fix.acc()
+        fix.incrCap 5
+        fix.pushM 5
+        fix.incrCap -2
+      ]
+
+      # thows if invalid data!
+      should.throws (->
+        sut.validate state, data),
+      (err) ->
+        d = err.data   
+        d[3].error.message.should.match /but mem-cnt is \[5\]/
+        done()
+
+
+
     it 'has NO issues if push-mem (SAME ID UNION) but LOW CAP', (done) ->
 
       data = [
