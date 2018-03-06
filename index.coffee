@@ -104,6 +104,14 @@ eventSchemas =
     type: Joi.string().required().only 'trial'
     days: Joi.number().integer().required()
 
+  'cancel' : Joi.object().keys
+    type: Joi.string().required().only 'cancel'
+    msg: Joi.string().required()
+
+  'uncancel' : Joi.object().keys
+    type: Joi.string().required().only 'uncancel'
+    msg: Joi.string().required()
+
   # TEST!
   'noop' : Joi.any()
 
