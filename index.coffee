@@ -50,8 +50,8 @@ orgSchemaKeys =
   country: Joi.string().required()
 
 baseSchemas = 
-  'ctxType' : Joi.string().only ['account','trial','student']
-  'org' : Joi.object().keys orgSchemaKeys
+  ctxType : Joi.string().only ['account','trial','student']
+  org : Joi.object().keys orgSchemaKeys
    
 
 # only whats needed here, can have MORE !!
@@ -59,8 +59,10 @@ orderStateSchema = (contextKeys) ->
 
   schema = Joi.object().keys {
     
-    owner: Joi.string()
-    product: Joi.string()
+    id: Joi.object().keys
+      product: Joi.string()
+      owner: Joi.string()
+      
 
     firstTimestamp: Joi.date().timestamp()
     lastTimestamp: Joi.date().timestamp()
@@ -296,8 +298,7 @@ module.exports =
   assert:
     orderState: (o,msg) ->
       contextKeys = eventSchemaKeys[o.type]
-      contextKeys = _.assign contextKeys, orgSchemaKeys if o.name
-      console.log "KKKKKKKK", _.keys contextKeys
+      contextKeys = _.assign contextKeys, orgSchemaKeys if o.name # nesting issue    
       schema = orderStateSchema contextKeys
       Joi.assert o, schema,msg
     events: (obj,msg) ->
