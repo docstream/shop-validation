@@ -80,8 +80,7 @@ orderStateSchema = (contextKeys) ->
 
   # add the context-part
   schema.keys contextKeys
-
-
+  schema
 
 
 eventSchemaKeys =
