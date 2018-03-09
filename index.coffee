@@ -297,6 +297,7 @@ module.exports =
     orderState: (o,msg) ->
       contextKeys = eventSchemaKeys[o.type]
       contextKeys = _.assign contextKeys, orgSchemaKeys if o.name
+      console.log "KKKKKKKK",contextKeys
       schema = orderStateSchema contextKeys
       Joi.assert o, schema,msg
     events: (obj,msg) ->
