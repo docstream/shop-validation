@@ -52,7 +52,9 @@ baseSchemas =
     country: Joi.string().required()
 
 # only whats needed here, can have MORE !!
-orderStateSchema = Joi.object().keys {
+orderStateSchema = (contextSchema) ->
+
+  Joi.object().keys {
     
     owner: Joi.string()
     product: Joi.string()
@@ -67,6 +69,8 @@ orderStateSchema = Joi.object().keys {
     memberCapacity: Joi.number().integer()
     memberSet: Joi.array().items Joi.string()
     type: baseSchemas.ctxType
+
+    cancelled: Joi.boolean()
 
     # PLUSS ->
     #    any fld from direclty from last GENESIS-event
@@ -259,7 +263,7 @@ validate = (state, data ) ->
     console.log "#{lineId_}: passed joi "
 
     precedingEvents = data[0...idx]
-    checkers = checkOrderingRules ev,precedingEvents,state
+    checkers = checkOrderingRules ev, precedingEvents,state
     
     unless (_.has checkers, ev.type)
       err = new Error "BUG!!! Rules for event [#{lineId_}] missing!"
@@ -280,8 +284,10 @@ validate = (state, data ) ->
 
 module.exports = 
   assert:
-    orderState: (obj,msg) ->
-      Joi.assert obj,orderStateSchema,msg
+    orderState: (o,msg) ->
+      contextSchema = eventSchemas[o.type]
+      schema = orderStateSchema contextSchema
+      Joi.assert o, schema,msg
     events: (obj,msg) ->
       Joi.assert obj,eventSchemas,msg
   validate: validate
