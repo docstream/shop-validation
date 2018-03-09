@@ -56,6 +56,17 @@ describe 'validation', ->
         err.message.should.match /"memberCapacity" must be a number/
         done()
 
+    it 'accepts state', (done) ->
+
+      state2 =
+        type: 'account'
+        memberCapacity: 1
+
+      data = [ { type: 'account' } ] # not important
+
+      sut.validate state2 , data
+      done()
+
 
 
   # events
