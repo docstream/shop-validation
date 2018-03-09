@@ -82,8 +82,8 @@ orderStateSchema = (contextKeys) ->
   .with 'memberSet', 'memberCapacity'
 
   # add the context-part
-  schema.keys contextKeys
-  schema
+  schema_ = schema.keys contextKeys 
+  schema_
 
 
 eventSchemaKeys =
