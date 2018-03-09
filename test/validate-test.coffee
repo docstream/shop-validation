@@ -15,10 +15,9 @@ describe 'validation', ->
 
   describe 'state', ->
 
-    it 'fails if STRANGE .context', (done) ->
+    it 'fails if STRANGE .contexttype', (done) ->
 
       state2 =
-       context:
         type:'x'
 
       data = [ {} ] # not important
@@ -32,9 +31,8 @@ describe 'validation', ->
     it 'fails if .members without .memberCapacity', (done) ->
 
       state2 =
-       context: 
         type : 'account'
-       memberSet: ['xxx']
+        memberSet: ['xxx']
 
       data = [ {} ] # not important
 
@@ -47,9 +45,8 @@ describe 'validation', ->
     it 'fails if bad props', (done) ->
 
       state2 =
-       context: 
-         type: 'account'
-       memberCapacity: 'text'
+        type: 'account'
+        memberCapacity: 'text'
 
       data = [ {} ] # not important
 
@@ -119,8 +116,7 @@ describe 'validation', ->
 
       state2 =
        idx: 42
-       context: 
-         type: 'account' 
+       type: 'account' 
 
       # 1
       sut.validate state2 , data
@@ -145,8 +141,7 @@ describe 'validation', ->
 
       state2 =
        idx: 42
-       context: 
-         type:'trial' 
+       type:'trial' 
 
       # 1
       should.throws (->
@@ -236,8 +231,7 @@ describe 'validation', ->
 
       state_ =
         idx: 1
-        context: 
-          type:'account'
+        type:'account'
         memberCapacity: 1
 
       data = [ fix.pushM 2 ]

@@ -43,8 +43,8 @@ validCtxTypes = ['account','trial','student']
 baseSchemas = 
   'ctxType' : Joi.string().only validCtxTypes
 
-  'context' :  Joi.object().keys
-    type: Joi.string().only validCtxTypes   
+  # 'context' :  Joi.object().keys
+  #   type: Joi.string().only validCtxTypes   
 
   'org' : Joi.object().keys
     name: Joi.string().required()
@@ -58,9 +58,24 @@ baseSchemas =
 
 # only whats needed here, can have MORE !!
 orderStateSchema = Joi.object().keys {
+    
+    owner: Joi.string()
+    product: Joi.string()
+
+    firstTimestamp: Joi.date().timestamp()
+    lastTimestamp: Joi.date().timestamp()
+    lastAuthnUser: Joi.string()
+
+    event_size: Joi.number().integer()
+    idx: Joi.number().integer()
+    
     memberCapacity: Joi.number().integer()
     memberSet: Joi.array().items Joi.string()
-    context: baseSchemas.context
+    type: baseSchemas.ctxType
+
+    # PLUSS ->
+    #    any fld from direclty from last GENESIS-event
+    
   }
   .with 'memberSet', 'memberCapacity'
 
@@ -74,7 +89,7 @@ eventSchemas =
   # make-sure-NO-overlapping-names 
   #   since we are y = joiflattening inside SNAPSHOTS
 
-  # genesis
+  # genesis - will appear on state
   'account' : Joi.object().keys
     type: Joi.string().required().only 'account'
     org: baseSchemas.org # optional
@@ -91,14 +106,14 @@ eventSchemas =
     type: Joi.string().required().only 'pop-members'
     members: Joi.array().items Joi.string()
 
-  # genesis
+  # genesis - will appear on state
   'student' : Joi.object().keys
     type: Joi.string().required().only 'student'
     university: Joi.string().required()
     course: Joi.string().required()
     finishingYear: Joi.number().integer()
 
-  # genesis
+  # genesis - will appear on state
   'trial' : Joi.object().keys
     type: Joi.string().required().only 'trial'
     days: Joi.number().integer().required()
@@ -125,10 +140,10 @@ checkOrderingRules = (event, precedingEvents, state) ->
   mustBelongToContextType = (contextType) ->
     Joi.attempt contextType, baseSchemas.ctxType
     errMsg = "context-type different than '#{contextType}' !"
-    if precedingEvents.length>0 and state?.context?.type != contextType
+    if precedingEvents.length>0 and state?.type != contextType
       rule = _.some precedingEvents, (pEv) -> pEv.type == contextType
       assert rule, errMsg
-    else if state?.context?.type != contextType
+    else if state?.type != contextType
       console.warn '>>>> STRANGE snap=',state
       assert.fail errMsg
 
@@ -138,10 +153,10 @@ checkOrderingRules = (event, precedingEvents, state) ->
       Joi.attempt t, baseSchemas.ctxType
 
     precedingType = (_.find precedingEvents, isContextEvent)?.type
-    earliestContext = state?.context?.type or precedingType
+    earliestContext = state?.type or precedingType
     if earliestContext and not (earliestContext in contextTypes)
       assert.fail "Cannot [#{event.type}] now.\n
-       \\_ [context] missmatch since '#{earliestContext}' is our context!"
+       \\_ [context] missmatch since '#{earliestContext}' is our contexttype!"
   
   currCap = ->
     (state.memberCapacity or 0) + (reducers.sumOfIncrements precedingEvents)
@@ -182,7 +197,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
       # rule 1
       mustBelongToContextType 'account'
 
-      console.log "state MEMz >", state.emberSet
+      console.log "state MEMz >", state.memberSet
       currCap_ = currCap()
       console.log "Calculated; currCap #{currCap_}"
       
