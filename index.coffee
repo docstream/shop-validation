@@ -52,9 +52,9 @@ baseSchemas =
     country: Joi.string().required()
 
 # only whats needed here, can have MORE !!
-orderStateSchema = (contextSchema) ->
+orderStateSchema = (contextKeys) ->
 
-  Joi.object().keys {
+  schema = Joi.object().keys {
     
     owner: Joi.string()
     product: Joi.string()
@@ -78,9 +78,13 @@ orderStateSchema = (contextSchema) ->
   }
   .with 'memberSet', 'memberCapacity'
 
+  # add the context-part
+  schema.keys contextKeys
 
-# [{}]
-eventSchemas =
+
+
+
+eventSchemaKeys =
 
   # ----------------------------------------
   # -------------- E V E N T S  ------------
@@ -89,44 +93,48 @@ eventSchemas =
   #   since we are y = joiflattening inside SNAPSHOTS
 
   # genesis - will appear on state
-  'account' : Joi.object().keys
+  'account' :
     type: Joi.string().required().only 'account'
     org: baseSchemas.org # optional
 
-  'incr-member-cap' : Joi.object().keys
+  'incr-member-cap' : 
     type: Joi.string().required().only 'incr-member-cap'
     increment: Joi.number().integer()
 
-  'push-members' : Joi.object().keys
+  'push-members' : 
     type: Joi.string().required().only 'push-members'
     members: Joi.array().items Joi.string()
 
-  'pop-members' : Joi.object().keys
+  'pop-members' : 
     type: Joi.string().required().only 'pop-members'
     members: Joi.array().items Joi.string()
 
   # genesis - will appear on state
-  'student' : Joi.object().keys
+  'student' : 
     type: Joi.string().required().only 'student'
     university: Joi.string().required()
     course: Joi.string().required()
     finishingYear: Joi.number().integer()
 
   # genesis - will appear on state
-  'trial' : Joi.object().keys
+  'trial' : 
     type: Joi.string().required().only 'trial'
     days: Joi.number().integer().required()
 
-  'cancel' : Joi.object().keys
+  'cancel' : 
     type: Joi.string().required().only 'cancel'
     msg: Joi.string().required()
 
-  'uncancel' : Joi.object().keys
+  'uncancel' : 
     type: Joi.string().required().only 'uncancel'
     msg: Joi.string().required()
 
-  # TEST!
-  'noop' : Joi.any()
+  'noop': {}
+
+# [{}]
+eventSchemas = (name) ->
+  return Joi.any() if name == 'noop'
+  Joi.object().keys eventSchemaKeys[name]
 
 
 # challenge the STATE aka state !
@@ -231,7 +239,7 @@ validate = (state, data ) ->
   fstErr = null
   errs = 0
 
-  sRes = Joi.validate state, orderStateSchema, { allowUnknown:yes }
+  sRes = Joi.validate state, orderStateSchema(), { allowUnknown:yes }
   if sRes.error
     console.log "[[[state]]]: INVALID (joi) ;", sRes.error.message
     throw sRes.error
@@ -251,11 +259,11 @@ validate = (state, data ) ->
 
     ev_ = _.cloneDeep ev
 
-    unless (_.has eventSchemas, ev.type)
+    unless (_.has eventSchemaKeys, ev.type)
       err = new Error "BUG!!! Schema for event [#{lineId_}] missing!"
       return appendErr ev,err
     
-    vRes = Joi.validate ev, eventSchemas[ev.type]
+    vRes = Joi.validate ev, eventSchemas(ev.type)
     if vRes.error
       console.log "#{lineId_}: INVALID (joi) ;", vRes.error.message
       return appendErr ev, vRes.error 
@@ -285,8 +293,8 @@ validate = (state, data ) ->
 module.exports = 
   assert:
     orderState: (o,msg) ->
-      contextSchema = eventSchemas[o.type]
-      schema = orderStateSchema contextSchema
+      contextKeys = eventSchemaKeys[o.type]
+      schema = orderStateSchema contextKeys
       Joi.assert o, schema,msg
     events: (obj,msg) ->
       Joi.assert obj,eventSchemas,msg
