@@ -38,13 +38,8 @@ reducers =
       acc
     ), members
 
-validCtxTypes = ['account','trial','student']
-
 baseSchemas = 
-  'ctxType' : Joi.string().only validCtxTypes
-
-  # 'context' :  Joi.object().keys
-  #   type: Joi.string().only validCtxTypes   
+  'ctxType' : Joi.string().only ['account','trial','student']
 
   'org' : Joi.object().keys
     name: Joi.string().required()
