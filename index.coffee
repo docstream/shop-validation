@@ -269,5 +269,10 @@ validate = (state, data ) ->
     throw err
 
 module.exports = 
+  assert:
+    orderState: (obj,msg) ->
+      Joi.assert obj,orderStateSchema,msg
+    events: (obj,msg) ->
+      Joi.assert obj,eventSchemas,msg
   validate: validate
   reducers: reducers
