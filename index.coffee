@@ -40,7 +40,7 @@ reducers =
 
 # not to clever since SOLR is flat.. sorry
 orgSchemaKeys =
-  name: Joi.string().required()
+  organization: Joi.string().required()
   phone: Joi.string()
   addressLine1: Joi.string().required()
   addressLine2: Joi.string()
@@ -55,15 +55,16 @@ baseSchemas =
    
 
 # only whats needed here, can have MORE !!
-orderStateSchema = (contextKeys) ->
+orderStateSchema = 
 
-  schema = Joi.object().keys {
+  Joi.object().keys {
+
+    type: baseSchemas.ctxType
     
     id: Joi.object().keys
       product: Joi.string()
       owner: Joi.string()
       
-
     firstTimestamp: Joi.date().timestamp()
     lastTimestamp: Joi.date().timestamp()
     lastAuthnUser: Joi.string()
@@ -73,7 +74,7 @@ orderStateSchema = (contextKeys) ->
     
     memberCapacity: Joi.number().integer()
     memberSet: Joi.array().items Joi.string()
-    type: baseSchemas.ctxType
+
 
     cancelled: Joi.boolean()
 
@@ -82,10 +83,6 @@ orderStateSchema = (contextKeys) ->
     
   }
   .with 'memberSet', 'memberCapacity'
-
-  # add the context-part
-  schema_ = schema.keys contextKeys 
-  schema_
 
 
 eventSchemaKeys =
@@ -243,7 +240,7 @@ validate = (state, data ) ->
   fstErr = null
   errs = 0
 
-  sRes = Joi.validate state, orderStateSchema(), { allowUnknown:yes }
+  sRes = Joi.validate state, orderStateSchema, { allowUnknown:yes }
   if sRes.error
     console.log "[[[state]]]: INVALID (joi) ;", sRes.error.message
     throw sRes.error
@@ -297,10 +294,18 @@ validate = (state, data ) ->
 module.exports = 
   assert:
     orderState: (o,msg) ->
-      contextKeys = eventSchemaKeys[o.type]
-      contextKeys = _.assign contextKeys, orgSchemaKeys if o.name # nesting issue    
-      schema = orderStateSchema contextKeys
-      Joi.assert o, schema,msg
+      schema = orderStateSchema
+
+      # more fields
+      if o.organization # nesting issue    
+        # dbl merge
+        moreKeys = _.assign eventSchemaKeys[o.type], orgSchemaKeys 
+      else
+        # sgl merge
+        moreKeys = eventSchemaKeys[o.type]
+
+      Joi.assert o, (schema.keys moreKeys), msg
+
     events: (obj,msg) ->
       Joi.assert obj,eventSchemas,msg
   validate: validate
