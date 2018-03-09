@@ -18,10 +18,9 @@ module.exports = fix =
 
   student : ->
     type: 'student'
-    university: 
-      name: 'honolulu'
-      course: 'eventSourcing'
-      finishingYear: 3001
+    university: 'honolulu'
+    course: 'eventSourcing'
+    finishingYear: 3001
 
   acc : ->
     type: 'account'

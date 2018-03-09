@@ -44,12 +44,7 @@ baseSchemas =
   'ctxType' : Joi.string().only validCtxTypes
 
   'context' :  Joi.object().keys
-    type: Joi.string().only validCtxTypes
-
-  'university' : Joi.object().keys
-    name: Joi.string().required()
-    course: Joi.string().required()
-    finishingYear: Joi.number().integer()
+    type: Joi.string().only validCtxTypes   
 
   'org' : Joi.object().keys
     name: Joi.string().required()
@@ -76,6 +71,8 @@ eventSchemas =
   # ----------------------------------------
   # -------------- E V E N T S  ------------
   # ----------------------------------------
+  # make-sure-NO-overlapping-names 
+  #   since we are y = joiflattening inside SNAPSHOTS
 
   # genesis
   'account' : Joi.object().keys
@@ -97,7 +94,9 @@ eventSchemas =
   # genesis
   'student' : Joi.object().keys
     type: Joi.string().required().only 'student'
-    university: baseSchemas.university.required()
+    university: Joi.string().required()
+    course: Joi.string().required()
+    finishingYear: Joi.number().integer()
 
   # genesis
   'trial' : Joi.object().keys
