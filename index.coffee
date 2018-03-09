@@ -38,18 +38,21 @@ reducers =
       acc
     ), members
 
+# not to clever since SOLR is flat.. sorry
+orgSchemaKeys =
+  name: Joi.string().required()
+  phone: Joi.string()
+  addressLine1: Joi.string().required()
+  addressLine2: Joi.string()
+  city: Joi.string().required()
+  zip: Joi.string().required()
+  region: Joi.string()
+  country: Joi.string().required()
+
 baseSchemas = 
   'ctxType' : Joi.string().only ['account','trial','student']
-
-  'org' : Joi.object().keys
-    name: Joi.string().required()
-    phone: Joi.string()
-    addressLine1: Joi.string().required()
-    addressLine2: Joi.string()
-    city: Joi.string().required()
-    zip: Joi.string().required()
-    region: Joi.string()
-    country: Joi.string().required()
+  'org' : Joi.object().keys orgSchemaKeys
+   
 
 # only whats needed here, can have MORE !!
 orderStateSchema = (contextKeys) ->
@@ -293,6 +296,7 @@ module.exports =
   assert:
     orderState: (o,msg) ->
       contextKeys = eventSchemaKeys[o.type]
+      _.assign contextKeys, orgSchemaKeys if o.name
       schema = orderStateSchema contextKeys
       Joi.assert o, schema,msg
     events: (obj,msg) ->
