@@ -147,12 +147,12 @@ checkOrderingRules = (event, precedingEvents, state) ->
   # context -> Either<Err,Void>
   mustBelongToContextType = (contextType) ->
     Joi.attempt contextType, baseSchemas.ctxType
-    errMsg = "context-type different than '#{contextType}' !"
+    errMsg = "V > context-type different than '#{contextType}' !"
     if precedingEvents.length>0 and state?.type != contextType
       rule = _.some precedingEvents, (pEv) -> pEv.type == contextType
       assert rule, errMsg
     else if state?.type != contextType
-      console.warn '>>>> STRANGE snap=',state
+      console.error " V > state.type [#{state?.type}] not expected!"
       assert.fail errMsg
 
    # SENTINEL helper
