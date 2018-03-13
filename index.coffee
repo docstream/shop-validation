@@ -89,11 +89,11 @@ eventSchemas =
 
   'push-members' : Joi.object().keys
     type: Joi.string().required().only 'push-members'
-    members: Joi.array().items Joi.string()
+    members: Joi.array().items baseSchemas.user
 
   'pop-members' : Joi.object().keys
     type: Joi.string().required().only 'pop-members'
-    members: Joi.array().items Joi.string()
+    members: Joi.array().items baseSchemas.user
 
   # genesis
   'student' : Joi.object().keys
