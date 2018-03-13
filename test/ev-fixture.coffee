@@ -5,11 +5,11 @@ module.exports = fix =
 
   
   members : [  
-    'id1-doh'
-    'id2-joh'
-    'id3-geh'
-    'id4-dee'
-    'id5-sni'
+    { id: 'id1-doh', name: 'numero uno'}
+    { id: 'id2-joh', name: 'john Long'}
+    { id: 'id3-geh', name: 'gehee' }
+    { id: 'id4-dee', name: 'laban' }
+    { id: 'id5-sni', name: 'Dee Snyder' }
   ]
 
   trial : ->

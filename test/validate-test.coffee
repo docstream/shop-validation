@@ -34,7 +34,7 @@ describe 'validation', ->
       state2 =
        context: 
         type : 'account'
-       memberSet: ['xxx']
+       memberSet: [id:'xxx',name:'yyy']
 
       data = [ {} ] # not important
 

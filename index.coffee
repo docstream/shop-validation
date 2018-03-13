@@ -206,6 +206,9 @@ checkOrderingRules = (event, precedingEvents, state) ->
       diff = _.difference event.members, currMembers
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
       assert diff.length == 0, errMsg
+
+    'cancel' : -> 'ok'
+    'uncancel': -> 'ok'
   }
 
 
