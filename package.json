@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "postinstall": "./node_modules/.bin/coffee --bare --compile index.coffee",
+    "postinstall": "./node_modules/.bin/coffee --bare --compile *.coffee",
+
     "test": "./node_modules/.bin/mocha -R spec --require coffeescript/register --require coffee-coverage-loader \"test/**/*.coffee\"",
     "istanbul": "./node_modules/.bin/istanbul report text html; printf '\n\nMer detaljer? Kjør bare;\n x-www-browser ./coverage/index.html\n\n'",
-    "posttest": "npm run-script istanbul"
+    "posttest": "npm run-script postinstall && npm run-script istanbul"
   },
   "author": "",
   "license": "ISC",

@@ -56,10 +56,14 @@ baseSchemas =
     region: Joi.string()
     country: Joi.string().required()
 
+  'user' : Joi.object().keys
+    id: Joi.string().required()
+    name: Joi.string().required()
+
 # only whats needed here, can have MORE !!
 orderStateSchema = Joi.object().keys {
     memberCapacity: Joi.number().integer()
-    memberSet: Joi.array().items Joi.string()
+    memberSet: Joi.array().items baseSchemas.user
     context: baseSchemas.context
   }
   .with 'memberSet', 'memberCapacity'
