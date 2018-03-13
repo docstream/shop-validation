@@ -38,54 +38,35 @@ reducers =
       acc
     ), members
 
-# not to clever since SOLR is flat.. sorry
-orgSchemaKeys =
-  organization: Joi.string().required()
-  phone: Joi.string()
-  addressLine1: Joi.string().required()
-  addressLine2: Joi.string()
-  city: Joi.string().required()
-  zip: Joi.string().required()
-  region: Joi.string()
-  country: Joi.string().required()
+validCtxTypes = ['account','trial','student']
 
 baseSchemas = 
-  ctxType : Joi.string().only ['account','trial','student']
-  org : Joi.object().keys orgSchemaKeys
-   
+  'ctxType' : Joi.string().only validCtxTypes
+
+  'context' :  Joi.object().keys
+    type: Joi.string().only validCtxTypes   
+
+  'org' : Joi.object().keys
+    name: Joi.string().required()
+    phone: Joi.string()
+    addressLine1: Joi.string().required()
+    addressLine2: Joi.string()
+    city: Joi.string().required()
+    zip: Joi.string().required()
+    region: Joi.string()
+    country: Joi.string().required()
 
 # only whats needed here, can have MORE !!
-orderStateSchema = 
-
-  Joi.object().keys {
-
-    type: baseSchemas.ctxType
-    
-    id: Joi.object().keys
-      product: Joi.string()
-      owner: Joi.string()
-      
-    firstTimestamp: Joi.date().timestamp()
-    lastTimestamp: Joi.date().timestamp()
-    lastAuthnUser: Joi.string()
-
-    event_size: Joi.number().integer()
-    idx: Joi.number().integer()
-    
+orderStateSchema = Joi.object().keys {
     memberCapacity: Joi.number().integer()
     memberSet: Joi.array().items Joi.string()
-
-
-    cancelled: Joi.boolean()
-
-    # PLUSS ->
-    #    any fld from direclty from last GENESIS-event
-    
+    context: baseSchemas.context
   }
   .with 'memberSet', 'memberCapacity'
 
 
-eventSchemaKeys =
+# [{}]
+eventSchemas =
 
   # ----------------------------------------
   # -------------- E V E N T S  ------------
@@ -93,49 +74,45 @@ eventSchemaKeys =
   # make-sure-NO-overlapping-names 
   #   since we are y = joiflattening inside SNAPSHOTS
 
-  # genesis - will appear on state
-  'account' :
+  # genesis
+  'account' : Joi.object().keys
     type: Joi.string().required().only 'account'
     org: baseSchemas.org # optional
 
-  'incr-member-cap' : 
+  'incr-member-cap' : Joi.object().keys
     type: Joi.string().required().only 'incr-member-cap'
     increment: Joi.number().integer()
 
-  'push-members' : 
+  'push-members' : Joi.object().keys
     type: Joi.string().required().only 'push-members'
     members: Joi.array().items Joi.string()
 
-  'pop-members' : 
+  'pop-members' : Joi.object().keys
     type: Joi.string().required().only 'pop-members'
     members: Joi.array().items Joi.string()
 
-  # genesis - will appear on state
-  'student' : 
+  # genesis
+  'student' : Joi.object().keys
     type: Joi.string().required().only 'student'
     university: Joi.string().required()
     course: Joi.string().required()
     finishingYear: Joi.number().integer()
 
-  # genesis - will appear on state
-  'trial' : 
+  # genesis
+  'trial' : Joi.object().keys
     type: Joi.string().required().only 'trial'
     days: Joi.number().integer().required()
 
-  'cancel' : 
+  'cancel' : Joi.object().keys
     type: Joi.string().required().only 'cancel'
     msg: Joi.string().required()
 
-  'uncancel' : 
+  'uncancel' : Joi.object().keys
     type: Joi.string().required().only 'uncancel'
     msg: Joi.string().required()
 
-  'noop': {}
-
-# [{}]
-eventSchemas = (name) ->
-  return Joi.any() if name == 'noop'
-  Joi.object().keys eventSchemaKeys[name]
+  # TEST!
+  'noop' : Joi.any()
 
 
 # challenge the STATE aka state !
@@ -147,12 +124,12 @@ checkOrderingRules = (event, precedingEvents, state) ->
   # context -> Either<Err,Void>
   mustBelongToContextType = (contextType) ->
     Joi.attempt contextType, baseSchemas.ctxType
-    errMsg = "V > context-type different than '#{contextType}' !"
-    if precedingEvents.length>0 and state?.type != contextType
+    errMsg = "context-type different than '#{contextType}' !"
+    if precedingEvents.length>0 and state?.context?.type != contextType
       rule = _.some precedingEvents, (pEv) -> pEv.type == contextType
       assert rule, errMsg
-    else if state?.type != contextType
-      console.error " V > state.type [#{state?.type}] not expected!"
+    else if state?.context?.type != contextType
+      console.warn '>>>> STRANGE snap=',state
       assert.fail errMsg
 
    # SENTINEL helper
@@ -161,10 +138,10 @@ checkOrderingRules = (event, precedingEvents, state) ->
       Joi.attempt t, baseSchemas.ctxType
 
     precedingType = (_.find precedingEvents, isContextEvent)?.type
-    earliestContext = state?.type or precedingType
+    earliestContext = state?.context?.type or precedingType
     if earliestContext and not (earliestContext in contextTypes)
       assert.fail "Cannot [#{event.type}] now.\n
-       \\_ [context] missmatch since '#{earliestContext}' is our contexttype!"
+       \\_ [context] missmatch since '#{earliestContext}' is our context!"
   
   currCap = ->
     (state.memberCapacity or 0) + (reducers.sumOfIncrements precedingEvents)
@@ -205,7 +182,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
       # rule 1
       mustBelongToContextType 'account'
 
-      console.log "state MEMz >", state.memberSet
+      console.log "state MEMz >", state.emberSet
       currCap_ = currCap()
       console.log "Calculated; currCap #{currCap_}"
       
@@ -260,11 +237,11 @@ validate = (state, data ) ->
 
     ev_ = _.cloneDeep ev
 
-    unless (_.has eventSchemaKeys, ev.type)
+    unless (_.has eventSchemas, ev.type)
       err = new Error "BUG!!! Schema for event [#{lineId_}] missing!"
       return appendErr ev,err
     
-    vRes = Joi.validate ev, eventSchemas(ev.type)
+    vRes = Joi.validate ev, eventSchemas[ev.type]
     if vRes.error
       console.log "#{lineId_}: INVALID (joi) ;", vRes.error.message
       return appendErr ev, vRes.error 
@@ -272,7 +249,7 @@ validate = (state, data ) ->
     console.log "#{lineId_}: passed joi "
 
     precedingEvents = data[0...idx]
-    checkers = checkOrderingRules ev, precedingEvents,state
+    checkers = checkOrderingRules ev,precedingEvents,state
     
     unless (_.has checkers, ev.type)
       err = new Error "BUG!!! Rules for event [#{lineId_}] missing!"
@@ -292,21 +269,5 @@ validate = (state, data ) ->
     throw err
 
 module.exports = 
-  assert:
-    orderState: (o,msg) ->
-      schema = orderStateSchema
-
-      # more fields
-      if o.organization # nesting issue    
-        # dbl merge
-        moreKeys = _.assign eventSchemaKeys[o.type], orgSchemaKeys 
-      else
-        # sgl merge
-        moreKeys = eventSchemaKeys[o.type]
-
-      Joi.assert o, (schema.keys moreKeys), msg
-
-    events: (obj,msg) ->
-      Joi.assert obj,eventSchemas,msg
   validate: validate
   reducers: reducers

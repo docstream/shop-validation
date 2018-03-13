@@ -15,9 +15,10 @@ describe 'validation', ->
 
   describe 'state', ->
 
-    it 'fails if STRANGE .contexttype', (done) ->
+    it 'fails if STRANGE .context', (done) ->
 
       state2 =
+       context:
         type:'x'
 
       data = [ {} ] # not important
@@ -31,8 +32,9 @@ describe 'validation', ->
     it 'fails if .members without .memberCapacity', (done) ->
 
       state2 =
+       context: 
         type : 'account'
-        memberSet: ['xxx']
+       memberSet: ['xxx']
 
       data = [ {} ] # not important
 
@@ -45,8 +47,9 @@ describe 'validation', ->
     it 'fails if bad props', (done) ->
 
       state2 =
-        type: 'account'
-        memberCapacity: 'text'
+       context: 
+         type: 'account'
+       memberCapacity: 'text'
 
       data = [ {} ] # not important
 
@@ -55,17 +58,6 @@ describe 'validation', ->
       (err) ->
         err.message.should.match /"memberCapacity" must be a number/
         done()
-
-    it 'accepts state', (done) ->
-
-      state2 =
-        type: 'account'
-        memberCapacity: 1
-
-      data = [ { type: 'account' } ] # not important
-
-      sut.validate state2 , data
-      done()
 
 
 
@@ -127,7 +119,8 @@ describe 'validation', ->
 
       state2 =
        idx: 42
-       type: 'account' 
+       context: 
+         type: 'account' 
 
       # 1
       sut.validate state2 , data
@@ -152,7 +145,8 @@ describe 'validation', ->
 
       state2 =
        idx: 42
-       type:'trial' 
+       context: 
+         type:'trial' 
 
       # 1
       should.throws (->
@@ -242,7 +236,8 @@ describe 'validation', ->
 
       state_ =
         idx: 1
-        type:'account'
+        context: 
+          type:'account'
         memberCapacity: 1
 
       data = [ fix.pushM 2 ]

@@ -25,7 +25,7 @@ module.exports = fix =
   acc : ->
     type: 'account'
     org: 
-      organization: 'PER AS'
+      name: 'PER AS'
       phone: 'xx-999'
       addressLine1: 'somewhere'
       addressLine2: 'more spesific'
