@@ -136,6 +136,18 @@ checkOrderingRules = (event, precedingEvents, state) ->
       console.warn '>>>> STRANGE snap=',state
       assert.fail errMsg
 
+  cancelled = ->
+    prevCancelEv = _.find precedingEvents.reverse(), (ev) -> 
+      ev.type == 'cancel' or ev.type == 'uncancel'
+    if prevCancelEv
+      cancelled: prevCancelEv.type == 'cancel' or false
+      msg: prevCancelEv.cancelMsg
+    else
+      cancelled: state.cancelled
+      msg: state.cancelMsg
+
+
+
    # SENTINEL helper
   cannotConflictEarlierContext = (contextTypes) ->
     _.each contextTypes, (t) ->
@@ -207,8 +219,10 @@ checkOrderingRules = (event, precedingEvents, state) ->
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
       assert diff.length == 0, errMsg
 
-    'cancel' : -> 'ok'
-    'uncancel': -> 'ok'
+    'cancel' : -> 
+      assert not cancelled().cancelled, 'Order is ALREADY cancelled !'
+    'uncancel': ->
+      assert cancelled().cancelled, 'Order dont NEED un-cancelling !'
   }
 
 

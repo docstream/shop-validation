@@ -322,3 +322,59 @@ describe 'validation', ->
         msg_ = d[2].error.message
         msg_.should.match /missmatch since 'account'/
         done()
+
+    it 'cannot cancel twice', (done) ->
+
+      data = [
+        { type: 'trial', days:400 }   
+        { type: 'cancel', msg: 'trial expired' }
+        { type: 'cancel', msg: 'trial expired2' }
+      ]
+
+      should.throws (->
+        sut.validate state, data),
+      (err) ->
+
+        err.message.should.match /ALREADY cancelled/
+        done()
+
+    it 'cannot UN-cancel twice', (done) ->
+
+      data = [
+        { type: 'trial', days:400 }   
+        { type: 'cancel', msg: 'trial expired' }
+        { type: 'uncancel', msg: 'my bad' }
+        { type: 'uncancel', msg: 'my bad2' }
+
+      ]
+
+      should.throws (->
+        sut.validate state, data),
+      (err) ->
+
+        err.message.should.match /dont NEED/
+        done()
+
+    it 'can uncancel', ->
+
+      data = [
+        { type: 'trial', days:400 }   
+        { type: 'cancel', msg: 'trial expired' }
+        { type: 'uncancel', msg: 'my bad' }
+      ]
+
+      sut.validate state, data
+
+    it 'cannot uncancel normal', (done) ->
+
+      data = [
+        { type: 'trial', days:400 }   
+        { type: 'uncancel', msg: 'my bad' }
+      ]
+
+      should.throws (->
+        sut.validate state, data),
+      (err) ->
+
+        err.message.should.match /dont NEED/
+        done()
