@@ -12,7 +12,7 @@ assert = require 'assert'
 isContextEvent = (ev) ->
   !(Joi.validate ev.type, baseSchemas.ctxType).error
 
-reducers = 
+reducers =
 
   # dueDate
 
@@ -40,11 +40,11 @@ reducers =
 
 validCtxTypes = ['account','trial','student']
 
-baseSchemas = 
+baseSchemas =
   'ctxType' : Joi.string().only validCtxTypes
 
   'context' :  Joi.object().keys
-    type: Joi.string().only validCtxTypes   
+    type: Joi.string().only validCtxTypes
 
   'org' : Joi.object().keys
     name: Joi.string().required()
@@ -75,7 +75,7 @@ eventSchemas =
   # ----------------------------------------
   # -------------- E V E N T S  ------------
   # ----------------------------------------
-  # make-sure-NO-overlapping-names 
+  # make-sure-NO-overlapping-names
   #   since we are y = joiflattening inside SNAPSHOTS
 
   # genesis
@@ -105,7 +105,7 @@ eventSchemas =
   # genesis
   'trial' : Joi.object().keys
     type: Joi.string().required().only 'trial'
-    days: Joi.number().integer().required()
+    days: Joi.number().integer().required().only 14 # NOTE Hardkodet pga sikkerhet
 
   'cancel' : Joi.object().keys
     type: Joi.string().required().only 'cancel'
@@ -137,7 +137,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
       assert.fail errMsg
 
   cancelled = ->
-    prevCancelEv = _.find precedingEvents.reverse(), (ev) -> 
+    prevCancelEv = _.find precedingEvents.reverse(), (ev) ->
       ev.type == 'cancel' or ev.type == 'uncancel'
     if prevCancelEv
       cancelled: prevCancelEv.type == 'cancel' or false
@@ -158,38 +158,38 @@ checkOrderingRules = (event, precedingEvents, state) ->
     if earliestContext and not (earliestContext in contextTypes)
       assert.fail "Cannot [#{event.type}] now.\n
        \\_ [context] missmatch since '#{earliestContext}' is our context!"
-  
+
   currCap = ->
     (state.memberCapacity or 0) + (reducers.sumOfIncrements precedingEvents)
 
   accumulatedMembers = ->
     precedingMems = reducers.sqashedMembers precedingEvents
     console.log "Calculated; precedingMems #{precedingMems}"
-      
+
     # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
     _.union precedingMems, event.members, state.memberSet
 
   {
     'account' :  ->
       cannotConflictEarlierContext ['account','trial']
-     
+
     'trial' :  ->
       cannotConflictEarlierContext ['trial']
 
     'student' :  ->
       cannotConflictEarlierContext ['student']
-      
+
     'incr-member-cap' :  ->
       mustBelongToContextType 'account'
-      
+
       currCap_ = currCap()
       console.log "Calculated; currCap #{currCap_}"
-      newCap = currCap_ + event.increment 
+      newCap = currCap_ + event.increment
       console.log "Calculated; newCap #{newCap}"
       accumulatedMembers_ = accumulatedMembers()
       console.log "Calculated; accumulatedMembers #{accumulatedMembers_}"
 
-      errMsg = "Cannot [#{event.type}] now. 
+      errMsg = "Cannot [#{event.type}] now.
         Cap try [#{newCap}] but mem-cnt is [#{accumulatedMembers_.length}]"
       assert newCap >= accumulatedMembers_.length, errMsg
 
@@ -201,10 +201,10 @@ checkOrderingRules = (event, precedingEvents, state) ->
       console.log "state MEMz >", state.emberSet
       currCap_ = currCap()
       console.log "Calculated; currCap #{currCap_}"
-      
+
       accumulatedMembers_ = accumulatedMembers()
       console.log "Calculated; accumulatedMembers #{accumulatedMembers_}"
-      
+
       errMsg = "Cannot [#{event.type}] now. OVERFLOW ! capacity = #{currCap_}"
       assert currCap_ >= accumulatedMembers_.length, errMsg
 
@@ -219,7 +219,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
       assert diff.length == 0, errMsg
 
-    'cancel' : -> 
+    'cancel' : ->
       assert not cancelled().cancelled, 'Order is ALREADY cancelled !'
     'uncancel': ->
       assert cancelled().cancelled, 'Order dont NEED un-cancelling !'
@@ -261,17 +261,17 @@ validate = (state, data ) ->
     unless (_.has eventSchemas, ev.type)
       err = new Error "BUG!!! Schema for event [#{lineId_}] missing!"
       return appendErr ev,err
-    
+
     vRes = Joi.validate ev, eventSchemas[ev.type]
     if vRes.error
       console.log "#{lineId_}: INVALID (joi) ;", vRes.error.message
-      return appendErr ev, vRes.error 
-    
+      return appendErr ev, vRes.error
+
     console.log "#{lineId_}: passed joi "
 
     precedingEvents = data[0...idx]
     checkers = checkOrderingRules ev,precedingEvents,state
-    
+
     unless (_.has checkers, ev.type)
       err = new Error "BUG!!! Rules for event [#{lineId_}] missing!"
       return appendErr ev,err
@@ -289,6 +289,6 @@ validate = (state, data ) ->
     err.data = annotatedData
     throw err
 
-module.exports = 
+module.exports =
   validate: validate
   reducers: reducers
