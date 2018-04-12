@@ -105,7 +105,7 @@ eventSchemas =
   # genesis
   'trial' : Joi.object().keys
     type: Joi.string().required().only 'trial'
-    days: Joi.number().integer().required().only 14 # NOTE Hardkodet pga sikkerhet
+    days: Joi.number().integer().required() # FIXME Security!!! Not allow hacking this!!!
 
   'cancel' : Joi.object().keys
     type: Joi.string().required().only 'cancel'
