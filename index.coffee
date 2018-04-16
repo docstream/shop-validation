@@ -33,7 +33,7 @@ reducers =
         acc = _.union acc, ev.members
       else if ev.type == 'pop-members'
         # remove/pop
-        acc = _.remove acc, (mem) =>
+        acc = _.remove acc, (mem) ->
           mem in ev.members
       acc
     ), members
