@@ -27,6 +27,10 @@ reducers =
 
   # [Event] -> [ids] -> [ids]
   sqashedMembers : (events, members=[]) ->
+    console.log "****************"
+    console.log JSON.stringify events, null, " "
+    console.log "-----------------"
+    console.log members
     _.reduce events, ((acc,ev) ->
       if ev.type == 'push-members'
         # add
