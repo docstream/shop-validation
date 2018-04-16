@@ -31,7 +31,7 @@ reducers =
     console.log JSON.stringify events, null, " "
     console.log "-----------------"
     console.log members
-    _.reduce events, ((acc,ev) ->
+    t = _.reduce events, ((acc,ev) ->
       if ev.type == 'push-members'
         # add
         acc = _.union acc, ev.members
@@ -41,6 +41,9 @@ reducers =
           mem in ev.members
       acc
     ), members
+    console.log "!!!!!!!!!!!!!!"
+    console.log JSON.stringify t, null, " "
+    t
 
 validCtxTypes = ['account','trial','student']
 
