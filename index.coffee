@@ -211,14 +211,9 @@ checkOrderingRules = (event, precedingEvents, state) ->
     'pop-members' :  ->
       # rule 1
       mustBelongToContextType 'account'
-      console.log "****************"
-      console.log precedingEvents
-      console.log "--------------------"
-      console.log state.memberSet
+
       # rule 2
       currMembers = reducers.sqashedMembers precedingEvents, state.memberSet
-      console.log "!!!!!!!!!!"
-      console.log currMembers
       # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
       diff = _.difference event.members, currMembers
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
