@@ -123,6 +123,7 @@ eventSchemas =
 checkOrderingRules = (event, precedingEvents, state) ->
 
   #console.log "precedingEvents",precedingEvents
+  
 
   # SENTINEL helper
   # context -> Either<Err,Void>
