@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "joi": "^13.1.1",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.11"
   },
   "devDependencies": {
     "coffeescript": "^2.2.1",
