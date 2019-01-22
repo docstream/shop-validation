@@ -227,9 +227,9 @@ checkOrderingRules = (event, precedingEvents, state) ->
     'pop-members' :  ->
       # rule 1
       mustBelongToContextType 'account'
-
+      testEvents = { "type" : "pop-members", "members" : state.memberSet }
       # rule 2
-      currMembers = reducers.sqashedMembers precedingEvents, state.memberSet
+      currMembers = reducers.sqashedMembers testEvents, state.memberSet
       console.log "********************** pop-members!!!!! ***************************"
       console.log "currMembers:"
       console.log currMembers
