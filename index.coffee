@@ -139,7 +139,9 @@ eventSchemas =
 # challenge the STATE aka state !
 checkOrderingRules = (event, precedingEvents, state) ->
 
-  #console.log "precedingEvents",precedingEvents
+  console.log "precedingEvents",precedingEvents
+  console.log "STATe"
+  console.log state
 
 
   # SENTINEL helper
@@ -229,7 +231,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
     'pop-members' :  ->
       # rule 1
       mustBelongToContextType 'account'
-      testEvents = [ { "type" : "pop-members", "members" : state.memberSet }
+      testEvents = [ { "type" : "pop-members", "members" : state.memberSet } ]
       console.log "********************** pop-members!!!!! ***************************"
       # rule 2
       currMembers = reducers.sqashedMembers testEvents, state.memberSet
