@@ -33,6 +33,8 @@ reducers =
     console.log "members"
     console.log members
     _.reduce events, ((acc,ev) ->
+      console.log "_________________ ev ______________________"
+      console.log ev
       if ev.type == 'push-members'
         console.log "--------------------------- push-members ------------------------------"
         console.log "acc"
