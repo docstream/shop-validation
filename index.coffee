@@ -139,7 +139,7 @@ eventSchemas =
 # challenge the STATE aka state !
 checkOrderingRules = (event, precedingEvents, state) ->
 
-  console.log "precedingEvents",precedingEvents
+  # console.log "precedingEvents",precedingEvents
   console.log "STATe"
   console.log state
 
