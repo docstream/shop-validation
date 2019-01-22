@@ -215,7 +215,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
 
       # rule 2
       currMembers = reducers.sqashedMembers precedingEvents, state.memberSet
-      console.log "********************** pop-members ***************************"
+      console.log "********************** pop-members!!!!! ***************************"
       console.log "currMembers:"
       console.log currMembers
       # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
