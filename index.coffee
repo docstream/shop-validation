@@ -225,6 +225,10 @@ checkOrderingRules = (event, precedingEvents, state) ->
 
       console.log "currMembers"
       console.log currMembers
+      console.log "diff"
+      console.log diff
+      console.log "diff length"
+      console.log diff.length
 
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
       # assert diff.length == 0, errMsg
