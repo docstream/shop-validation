@@ -32,6 +32,11 @@ reducers =
         # add
         acc = _.union acc, ev.members
       else if ev.type == 'pop-members'
+        console.log "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        console.log "acc"
+        console.log acc
+        console.log "ev"
+        console.log ev
         # remove/pop
         acc = _.remove acc, (mem) ->
           mem in ev.members
@@ -218,6 +223,8 @@ checkOrderingRules = (event, precedingEvents, state) ->
       console.log "********************** pop-members!!!!! ***************************"
       console.log "currMembers:"
       console.log currMembers
+      console.log "state.memberSet"
+      console.log state.memberSet
       # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
       diff = _.difference event.members, currMembers
       console.log "diff"
