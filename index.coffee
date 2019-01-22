@@ -212,26 +212,13 @@ checkOrderingRules = (event, precedingEvents, state) ->
       # rule 1
       mustBelongToContextType 'account'
 
-      console.log "*******************************************"
-      console.log "state.memberSet"
-      console.log state.memberSet
-      console.log "event.members"
-      console.log event.members
-
       # rule 2
       currMembers = reducers.sqashedMembers precedingEvents, state.memberSet
       # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
       diff = _.difference event.members, currMembers
 
-      console.log "currMembers"
-      console.log currMembers
-      console.log "diff"
-      console.log diff
-      console.log "diff length"
-      console.log diff.length
-
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
-      # assert diff.length == 0, errMsg
+      assert diff.length == 1, errMsg
 
     'cancel' : ->
       assert not cancelled().cancelled, 'Order is ALREADY cancelled !'
