@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "joi": "^13.1.1",
+    "joi": "^14.3.1",
     "lodash": "^4.17.11"
   },
   "devDependencies": {
