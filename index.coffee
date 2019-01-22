@@ -34,10 +34,15 @@ reducers =
     console.log members
     _.reduce events, ((acc,ev) ->
       if ev.type == 'push-members'
+        console.log "--------------------------- push-members ------------------------------"
+        console.log "acc"
+        console.log acc
+        console.log "ev"
+        console.log ev
         # add
         acc = _.union acc, ev.members
       else if ev.type == 'pop-members'
-        console.log "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        console.log "!!!!!!!!!!!!!!!!!!! pop-members !!!!!!!!!!!!!!!!!!!!!!!!!!!!"
         console.log "acc"
         console.log acc
         console.log "ev"
