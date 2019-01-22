@@ -123,7 +123,7 @@ eventSchemas =
 checkOrderingRules = (event, precedingEvents, state) ->
 
   #console.log "precedingEvents",precedingEvents
-  
+
 
   # SENTINEL helper
   # context -> Either<Err,Void>
@@ -224,6 +224,8 @@ checkOrderingRules = (event, precedingEvents, state) ->
       console.log diff
       console.log "event.members"
       console.log event.members
+      console.log "diff.length"
+      console.log diff.length
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
       assert diff.length == 0, errMsg
 
