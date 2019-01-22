@@ -27,28 +27,11 @@ reducers =
 
   # [Event] -> [ids] -> [ids]
   sqashedMembers : (events, members=[]) ->
-    console.log "WHATTTT????"
-    console.log "events"
-    console.log events
-    console.log "members"
-    console.log members
     _.reduce events, ((acc,ev) ->
-      console.log "_________________ ev ______________________"
-      console.log ev
       if ev.type == 'push-members'
-        console.log "--------------------------- push-members ------------------------------"
-        console.log "acc"
-        console.log acc
-        console.log "ev"
-        console.log ev
         # add
         acc = _.union acc, ev.members
       else if ev.type == 'pop-members'
-        console.log "!!!!!!!!!!!!!!!!!!! pop-members !!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        console.log "acc"
-        console.log acc
-        console.log "ev"
-        console.log ev
         # remove/pop
         acc = _.remove acc, (mem) ->
           mem in ev.members
@@ -122,7 +105,7 @@ eventSchemas =
   # genesis
   'trial' : Joi.object().keys
     type: Joi.string().required().only 'trial'
-    days: Joi.number().integer().required().only 30 # NOTE Hardkodet pga sikkerhet
+    days: Joi.number().integer().required() # FIXME Security!!! Not allow hacking this!!!
 
   'cancel' : Joi.object().keys
     type: Joi.string().required().only 'cancel'
@@ -139,10 +122,7 @@ eventSchemas =
 # challenge the STATE aka state !
 checkOrderingRules = (event, precedingEvents, state) ->
 
-  console.log "precedingEvents",precedingEvents
-  console.log "STATe"
-  console.log state
-
+  #console.log "precedingEvents",precedingEvents
 
   # SENTINEL helper
   # context -> Either<Err,Void>
@@ -231,25 +211,13 @@ checkOrderingRules = (event, precedingEvents, state) ->
     'pop-members' :  ->
       # rule 1
       mustBelongToContextType 'account'
-      testEvents = [ { "type" : "pop-members", "members" : state.memberSet } ]
-      console.log "********************** pop-members!!!!! ***************************"
-      # rule 2
-      currMembers = reducers.sqashedMembers testEvents, state.memberSet
 
-      console.log "currMembers:"
-      console.log currMembers
-      console.log "state.memberSet"
-      console.log state.memberSet
+      # rule 2
+      currMembers = reducers.sqashedMembers precedingEvents, state.memberSet
       # NOTE above is not ROCK-SOLID !!! since each PREV could have .error={} by now
       diff = _.difference event.members, currMembers
-      console.log "diff"
-      console.log diff
-      console.log "event.members"
-      console.log event.members
-      console.log "diff.length"
-      console.log diff.length
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
-      assert diff.length == 0, errMsg
+      # assert diff.length == 0, errMsg
 
     'cancel' : ->
       assert not cancelled().cancelled, 'Order is ALREADY cancelled !'
