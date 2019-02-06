@@ -5,7 +5,6 @@ assert = require 'assert'
 # NB!!!! ClientSide and ServerSide  code
 # TODO -> pack for web w/ webpack OR browserify
 
-
 # export candidates -------------
 
 # Event -> boolean
