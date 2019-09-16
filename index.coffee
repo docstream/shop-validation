@@ -217,7 +217,7 @@ checkOrderingRules = (event, precedingEvents, state) ->
       diff = _.difference event.members, currMembers
 
       errMsg = "Cannot [#{event.type}] now. Cannot pop NON-EXISTING members; #{diff}"
-      assert diff.length == 1, errMsg
+      assert diff.length == 1, errMsg #NOTE Was diff.length == 0
 
     'cancel' : ->
       assert not cancelled().cancelled, 'Order is ALREADY cancelled !'
